@@ -28,7 +28,7 @@ If you are using your application in your day-to-day job, on presentation demos,
 You can install the package via npm:
 
 ```bash
-npm install -g laravel-echo
+npm install -g echo-server-revampede
 ```
 
 ## 🙌 Usage
