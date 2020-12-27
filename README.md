@@ -11,6 +11,7 @@ This is a fork of the original [Laravel Echo Server package](https://github.com/
 - Horizontal scaling
 - Docker Container support
 - Linting
+- Update packages
 
 ## System Requirements
 
