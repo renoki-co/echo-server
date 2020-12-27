@@ -14,47 +14,47 @@ export class EchoServer {
     /**
      * Default server options.
      */
-    public defaultOptions: any = {
-        authHost: 'http://localhost',
-        authEndpoint: '/broadcasting/auth',
+    public options: any = {
+        auth: {
+            host: 'http://127.0.0.1',
+            endpoint: '/broadcasting/auth',
+        },
         clients: [],
-        database: 'redis',
-        databaseConfig: {
+        cors: {
+            enabled: false,
+            allowedOrigins: '',
+            allowedMethods: '',
+            allowedHeaders: '',
+        },
+        database: {
+            driver: 'redis',
             redis: {
-                //
+                publishPresence: true,
+                keyPrefix: 'echo-server',
             },
             sqlite: {
-                databasePath: '/database/laravel-echo-server.sqlite'
+                path: '/database/laravel-echo-server.sqlite'
             },
         },
-        devMode: false,
+        development: false,
         host: null,
         port: 6001,
-        protocol: "http",
-        socketio: {
+        protocol: 'http',
+        secureOptions: constants.SSL_OP_NO_TLSv1,
+        socketIoOptions: {
             //
         },
-        secureOptions: constants.SSL_OP_NO_TLSv1,
-        sslCertPath: '',
-        sslKeyPath: '',
-        sslCertChainPath: '',
-        sslPassphrase: '',
+        ssl: {
+            certPath: '',
+            keyPath: '',
+            caPath: '',
+            passphrase: '',
+        },
         subscribers: {
             http: true,
             redis: true,
         },
-        apiOriginAllow: {
-            allowCors: false,
-            allowOrigin: '',
-            allowMethods: '',
-            allowHeaders: '',
-        },
     };
-
-    /**
-     * Configurable server options.
-     */
-    public options: any;
 
     /**
      * Socket.io server instance.
@@ -91,7 +91,7 @@ export class EchoServer {
      */
     run(options: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.options = Object.assign(this.defaultOptions, options);
+            this.options = Object.assign(this.options, options);
             this.startup();
             this.server = new Server(this.options);
 
@@ -113,7 +113,6 @@ export class EchoServer {
     init(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
             this.channel = new Channel(io, this.options);
-
             this.subscribers = [];
 
             if (this.options.subscribers.http) {
@@ -124,7 +123,7 @@ export class EchoServer {
                 this.subscribers.push(new RedisSubscriber(this.options));
             }
 
-            this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.apiOriginAllow);
+            this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.cors);
             this.httpApi.init();
 
             this.onConnect();
@@ -137,13 +136,12 @@ export class EchoServer {
      * Text shown at startup.
      */
     startup(): void {
-        Log.title(`\nL A R A V E L  E C H O  S E R V E R\n`);
-        Log.info(`version ${packageFile.version}\n`);
+        Log.title(`\Echo Server v${packageFile.version} \n`);
 
-        if (this.options.devMode) {
-            Log.warning('Starting server in DEV mode...\n');
+        if (this.options.development) {
+            Log.warning('Starting the server in development mode...\n');
         } else {
-            Log.info('Starting server...\n')
+            Log.info('Starting the server...\n')
         }
     }
 
@@ -153,7 +151,7 @@ export class EchoServer {
      * @return {Promise<any>}
      */
     stop(): Promise<any> {
-        console.log('Stopping the LARAVEL ECHO SERVER')
+        console.log('Stopping the server...')
 
         let promises = [];
 
@@ -165,7 +163,7 @@ export class EchoServer {
 
         return Promise.all(promises).then(() => {
             this.subscribers = [];
-            console.log('The LARAVEL ECHO SERVER server has been stopped.');
+            console.log('The Echo server has been stopped.');
         });
     }
 

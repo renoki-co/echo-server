@@ -27,13 +27,13 @@ export class PrivateChannel {
      */
     authenticate(socket: any, data: any): Promise<any> {
         let options = {
-            url: this.authHost(socket) + this.options.authEndpoint,
+            url: this.authHost(socket) + this.options.auth.endpoint,
             form: { channel_name: data.channel },
             headers: (data.auth && data.auth.headers) ? data.auth.headers : {},
             rejectUnauthorized: false
         };
 
-        if (this.options.devMode) {
+        if (this.options.development) {
             Log.info(`[${new Date().toISOString()}] - Sending auth request to: ${options.url}\n`);
         }
 
@@ -47,9 +47,9 @@ export class PrivateChannel {
      * @return {string}
      */
     protected authHost(socket: any): string {
-        let authHosts = (this.options.authHost) ? this.options.authHost : this.options.host;
+        let authHosts = (this.options.auth.host) ? this.options.auth.host : this.options.host;
 
-        if (typeof authHosts === "string") {
+        if (typeof authHosts === 'string') {
             authHosts = [authHosts];
         }
 
@@ -68,7 +68,7 @@ export class PrivateChannel {
             };
         }
 
-        if (this.options.devMode) {
+        if (this.options.development) {
             Log.error(`[${new Date().toISOString()}] - Preparing authentication request to: ${authHostSelected}`);
         }
 
@@ -103,21 +103,21 @@ export class PrivateChannel {
 
             this.request.post(options, (error, response, body, next) => {
                 if (error) {
-                    if (this.options.devMode) {
+                    if (this.options.development) {
                         Log.error(`[${new Date().toISOString()}] - Error authenticating ${socket.id} for ${options.form.channel_name}`);
                         Log.error(error);
                     }
 
                     reject({ reason: 'Error sending authentication request.', status: 0 });
                 } else if (response.statusCode !== 200) {
-                    if (this.options.devMode) {
+                    if (this.options.development) {
                         Log.warning(`[${new Date().toISOString()}] - ${socket.id} could not be authenticated to ${options.form.channel_name}`);
                         Log.error(response.body);
                     }
 
                     reject({ reason: 'Client can not be authenticated, got HTTP status ' + response.statusCode, status: response.statusCode });
                 } else {
-                    if (this.options.devMode) {
+                    if (this.options.development) {
                         Log.info(`[${new Date().toISOString()}] - ${socket.id} authenticated for: ${options.form.channel_name}`);
                     }
 

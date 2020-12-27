@@ -1,6 +1,6 @@
 import { Database } from './../database';
 import { Log } from './../log';
-var _ = require("lodash");
+var _ = require('lodash');
 
 export class PresenceChannel {
     /**
@@ -90,7 +90,7 @@ export class PresenceChannel {
      */
     join(socket: any, channel: string, member: any) {
         if (!member) {
-            if (this.options.devMode) {
+            if (this.options.development) {
                 Log.error('Unable to join channel. Member data for presence channel missing.');
             }
 

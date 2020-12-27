@@ -18,9 +18,9 @@ export class Database implements DatabaseDriver {
      * @param {any} options
      */
     constructor(private options: any) {
-        if (options.database == 'redis') {
+        if (options.database.driver == 'redis') {
             this.driver = new RedisDatabase(options);
-        } else if (options.database == 'sqlite') {
+        } else if (options.database.driver == 'sqlite') {
             this.driver = new SQLiteDatabase(options);
         } else {
             Log.error('Database driver not set.');

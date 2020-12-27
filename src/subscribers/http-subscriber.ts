@@ -26,7 +26,7 @@ export class HttpSubscriber implements Subscriber {
                 let body: any = [];
 
                 res.on('error', (error) => {
-                    if (this.options.devMode) {
+                    if (this.options.development) {
                         Log.error(error);
                     }
                 });
@@ -89,7 +89,7 @@ export class HttpSubscriber implements Subscriber {
 
             var channels = body.channels || [body.channel];
 
-            if (this.options.devMode) {
+            if (this.options.development) {
                 Log.info(`Channel: ${channels.join(', ')}`);
                 Log.info(`Event: ${message.event}`);
             }

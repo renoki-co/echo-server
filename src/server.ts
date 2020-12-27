@@ -81,15 +81,15 @@ export class Server {
      */
     secure(): Promise<any> {
         return new Promise((resolve, reject) => {
-            if (!this.options.sslCertPath || !this.options.sslKeyPath) {
+            if (!this.options.ssl.certPath || !this.options.ssl.keyPath) {
                 reject('SSL paths are missing in server config.');
             }
 
             Object.assign(this.options, {
-                cert: fs.readFileSync(this.options.sslCertPath),
-                key: fs.readFileSync(this.options.sslKeyPath),
-                ca: (this.options.sslCertChainPath) ? fs.readFileSync(this.options.sslCertChainPath) : '',
-                passphrase: this.options.sslPassphrase,
+                cert: fs.readFileSync(this.options.ssl.certPath),
+                key: fs.readFileSync(this.options.ssl.KeyPath),
+                ca: (this.options.ssl.caPath) ? fs.readFileSync(this.options.ssl.caPath) : '',
+                passphrase: this.options.ssl.passphrase,
             });
 
             resolve(this.options);
@@ -121,7 +121,7 @@ export class Server {
 
         this.authorizeRequests();
 
-        return this.io = io(httpServer, this.options.socketio);
+        return this.io = io(httpServer, this.options.socketIoOptions);
     }
 
     /**

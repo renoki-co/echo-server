@@ -24,8 +24,8 @@ export class RedisSubscriber implements Subscriber {
      * @param {any} options
      */
     constructor(private options) {
-        this._keyPrefix = options.databaseConfig.redis.keyPrefix || '';
-        this._redis = new Redis(options.databaseConfig.redis);
+        this._keyPrefix = options.database.redis.keyPrefix || '';
+        this._redis = new Redis(options.database.redis);
     }
 
     /**
@@ -39,14 +39,14 @@ export class RedisSubscriber implements Subscriber {
                 try {
                     message = JSON.parse(message);
 
-                    if (this.options.devMode) {
+                    if (this.options.development) {
                         Log.info(`Channel: ${channel}`);
                         Log.info(`Event: ${message.event}`);
                     }
 
                     callback(channel.substring(this._keyPrefix.length), message);
                 } catch (e) {
-                    if (this.options.devMode) {
+                    if (this.options.development) {
                         Log.info('No JSON message.');
                     }
                 }

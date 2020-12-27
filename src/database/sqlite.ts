@@ -18,7 +18,7 @@ export class SQLiteDatabase implements DatabaseDriver {
     constructor(private options) {
         if (!sqlite3) return;
 
-        let path = process.cwd() + options.databaseConfig.sqlite.databasePath;
+        let path = process.cwd() + options.database.sqlite.path;
 
         this._sqlite = new sqlite3.cached.Database(path);
 
