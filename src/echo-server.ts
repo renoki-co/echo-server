@@ -21,10 +21,20 @@ export class EchoServer {
         },
         clients: [],
         cors: {
-            enabled: false,
-            allowedOrigins: '',
-            allowedMethods: '',
-            allowedHeaders: '',
+            enabled: true,
+            allowedOrigins: ['http://127.0.0.1'],
+            allowedMethods: ['GET', 'POST'],
+            allowedHeaders: [
+                'Origin',
+                'Content-Type',
+                'X-Auth-Token',
+                'X-Requested-With',
+                'Accept',
+                'Authorization',
+                'X-CSRF-TOKEN',
+                'XSRF-TOKEN',
+                'X-Socket-Id',
+            ],
         },
         database: {
             driver: 'redis',
@@ -98,6 +108,12 @@ export class EchoServer {
             this.server.init().then(io => {
                 this.init(io).then(() => {
                     Log.info('\nServer ready!\n');
+
+                    if (this.options.development) {
+                        Log.info(`Current options:\n`);
+                        console.log(this.options);
+                    }
+
                     resolve(this);
                 }, error => Log.error(error));
             }, error => Log.error(error));

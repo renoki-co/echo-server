@@ -21,6 +21,8 @@ export class Cli {
         ECHO_SERVER_AUTH_HOST: 'auth.host',
         ECHO_SERVER_AUTH_ENDPOINT: 'auth.endpoint',
         ECHO_SERVER_DATABASE_DRIVER: 'database.driver',
+        ECHO_SERVER_CORS: 'cors.enabled',
+        ECHO_SERVER_CORS_ALLOWED_ORIGINS: 'cors.allowedOrigins',
         ECHO_SERVER_DEBUG: 'development',
         ECHO_SERVER_SOCKET_HOST: 'host',
         ECHO_SERVER_SOCKET_PORT: 'port',
@@ -38,25 +40,34 @@ export class Cli {
     /**
      * Inject the .env vars into options if they exist.
      */
-    overwriteFromEnv(options: any): any {
+    overwriteOptionsFromEnv(): void {
         require('dotenv').config();
 
-        for (let key in this.envVariables) {
-            let value = (process.env[key] || '').toString();
+        for (let envVar in this.envVariables) {
+            let value = process.env[envVar] || null;
+            let optionKey = this.envVariables[envVar];
 
-            if (value) {
-                dot.set(this.options, key, value);
+            if (value !== null) {
+                var json = null;
+
+                if (typeof value === 'string') {
+                    json = JSON.parse(value);
+
+                    if (json !== null) {
+                        value = json;
+                    }
+                }
+
+                this.options = dot.set(this.options, optionKey, value);
             }
         }
-
-        return options;
     }
 
     /**
      * Start the Echo server.
      */
     start(yargs: any): void {
-        const options = this.overwriteFromEnv(this.options);
+        this.overwriteOptionsFromEnv();
 
         const handleFailure = () => {
             echo.stop();
@@ -67,6 +78,6 @@ export class Cli {
         process.on('SIGHUP', handleFailure);
         process.on('SIGTERM', handleFailure);
 
-        echo.run(options);
+        echo.run(this.options);
     }
 }

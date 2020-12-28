@@ -34,9 +34,9 @@ export class HttpApi {
     corsMiddleware(): void {
         if (this.options.enabled) {
             this.express.use((req, res, next) => {
-                res.header('Access-Control-Allow-Origin', this.options.allowedOrigins);
-                res.header('Access-Control-Allow-Methods', this.options.allowedMethods);
-                res.header('Access-Control-Allow-Headers', this.options.allowedHeaders);
+                res.header('Access-Control-Allow-Origin', this.options.allowedOrigins.join(', '));
+                res.header('Access-Control-Allow-Methods', this.options.allowedMethods.join(', '));
+                res.header('Access-Control-Allow-Headers', this.options.allowedHeaders.join(', '));
 
                 next();
             });

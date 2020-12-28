@@ -53,7 +53,7 @@ export class PrivateChannel {
             authHosts = [authHosts];
         }
 
-        let authHostSelected = authHosts[0] || 'http://localhost';
+        let authHostSelected = authHosts[0] || 'http://127.0.0.1';
 
         if (socket.request.headers.referer) {
             let referer = url.parse(socket.request.headers.referer);
