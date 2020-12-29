@@ -21,8 +21,7 @@ export class Cli {
         ECHO_SERVER_AUTH_HOST: 'auth.host',
         ECHO_SERVER_AUTH_ENDPOINT: 'auth.endpoint',
         ECHO_SERVER_DATABASE_DRIVER: 'database.driver',
-        ECHO_SERVER_CORS: 'cors.enabled',
-        ECHO_SERVER_CORS_ALLOWED_ORIGINS: 'cors.allowedOrigins',
+        ECHO_SERVER_CORS_ALLOWED_ORIGINS: 'cors.origin',
         ECHO_SERVER_DEBUG: 'development',
         ECHO_SERVER_SOCKET_HOST: 'host',
         ECHO_SERVER_SOCKET_PORT: 'port',
@@ -51,7 +50,11 @@ export class Cli {
                 var json = null;
 
                 if (typeof value === 'string') {
-                    json = JSON.parse(value);
+                    try {
+                        json = JSON.parse(value);
+                    } catch (e) {
+                        json = null;
+                    }
 
                     if (json !== null) {
                         value = json;

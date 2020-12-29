@@ -36,6 +36,13 @@ export class Server {
      * @return {Promise<any>}
      */
     init(): Promise<any> {
+        this.options.socketIoOptions = {
+            ...this.options.socketIoOptions,
+            ...{
+                cors: this.options.cors,
+            },
+        };
+
         return new Promise((resolve, reject) => {
             this.serverProtocol().then(() => {
                 let host = this.options.host || '127.0.0.1';

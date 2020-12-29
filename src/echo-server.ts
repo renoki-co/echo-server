@@ -19,11 +19,10 @@ export class EchoServer {
             host: 'http://127.0.0.1',
             endpoint: '/broadcasting/auth',
         },
-        clients: [],
         cors: {
-            enabled: true,
-            allowedOrigins: ['http://127.0.0.1'],
-            allowedMethods: ['GET', 'POST'],
+            credentials: false,
+            origin: ['http://127.0.0.1'],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: [
                 'Origin',
                 'Content-Type',
