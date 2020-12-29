@@ -21,11 +21,10 @@ export class HttpApi {
     init(): void {
         this.corsMiddleware();
 
-        this.express.get('/', (req, res) => this.getRoot(req, res));
-        this.express.get('/apps/:appId/status', (req, res) => this.getStatus(req, res));
-        this.express.get('/apps/:appId/channels', (req, res) => this.getChannels(req, res));
-        this.express.get('/apps/:appId/channels/:channelName', (req, res) => this.getChannel(req, res));
-        this.express.get('/apps/:appId/channels/:channelName/users', (req, res) => this.getChannelUsers(req, res));
+        // this.express.get('/', (req, res) => this.getRoot(req, res));
+        // this.express.get('/apps/:appId/channels', (req, res) => this.getChannels(req, res));
+        // this.express.get('/apps/:appId/channels/:channelName', (req, res) => this.getChannel(req, res));
+        // this.express.get('/apps/:appId/channels/:channelName/users', (req, res) => this.getChannelUsers(req, res));
     }
 
     /**
@@ -50,21 +49,6 @@ export class HttpApi {
      */
     getRoot(req: any, res: any): void {
         res.send('OK');
-    }
-
-    /**
-     * Get the status of the server.
-     *
-     * @param  {any}  req
-     * @param  {any}  res
-     * @return {void}
-     */
-    getStatus(req: any, res: any): void {
-        res.json({
-            subscription_count: this.io.engine.clientsCount,
-            uptime: process.uptime(),
-            memory_usage: process.memoryUsage(),
-        });
     }
 
     /**

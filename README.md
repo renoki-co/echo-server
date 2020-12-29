@@ -22,6 +22,7 @@ If you are using your application in your day-to-day job, on presentation demos,
 - Horizontal scaling
 - Linting
 - Testing
+- App Managers
 
 ## 🚀 Installation
 
