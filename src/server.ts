@@ -115,6 +115,7 @@ export class Server {
             for (var header in this.options.headers) {
                 res.setHeader(header, this.options.headers[header]);
             }
+
             next();
         });
 

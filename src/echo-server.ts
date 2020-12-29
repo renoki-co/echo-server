@@ -47,6 +47,9 @@ export class EchoServer {
         },
         development: false,
         host: null,
+        headers: [
+            //
+        ],
         port: 6001,
         protocol: 'http',
         secureOptions: constants.SSL_OP_NO_TLSv1,
@@ -120,7 +123,7 @@ export class EchoServer {
     }
 
     /**
-     * Initialize the class
+     * Initialize the class.
      *
      * @param  {any}  io
      * @return {Promise<void>}

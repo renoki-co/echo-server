@@ -5,6 +5,11 @@ import { Log } from './../log';
 
 export class PrivateChannel {
     /**
+     * Request client.
+     */
+    private request: any;
+
+    /**
      * Create a new private channel instance.
      *
      * @param  {any}  options
@@ -12,11 +17,6 @@ export class PrivateChannel {
     constructor(private options: any) {
         this.request = request;
     }
-
-    /**
-     * Request client.
-     */
-    private request: any;
 
     /**
      * Send authentication request to application server.

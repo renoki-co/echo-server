@@ -3,16 +3,16 @@ const echo = require('./../../dist');
 
 export class Cli {
     /**
+     * Default configuration options.
+     */
+    options: any;
+
+    /**
      * Create new CLI instance.
      */
     constructor() {
         this.options = echo.options;
     }
-
-    /**
-     * Default configuration options.
-     */
-    options: any;
 
     /**
      * Allowed environment variables.
