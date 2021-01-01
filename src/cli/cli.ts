@@ -25,6 +25,7 @@ export class Cli {
         ECHO_SERVER_DEBUG: 'development',
         ECHO_SERVER_SOCKET_HOST: 'host',
         ECHO_SERVER_SOCKET_PORT: 'port',
+        ECHO_SERVER_SOCKET_PROTOCOL: 'protocol',
         ECHO_SERVER_REDIS_HOST: 'database.redis.host',
         ECHO_SERVER_REDIS_PORT: 'database.redis.port',
         ECHO_SERVER_REDIS_PASSWORD: 'database.redis.password',

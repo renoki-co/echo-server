@@ -77,6 +77,7 @@ ECHO_DATABASE_DRIVER=redis
 | `ECHO_SERVER_DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
 | `ECHO_SERVER_SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
 | `ECHO_SERVER_SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
+| `ECHO_SERVER_SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
 | `ECHO_SERVER_REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
 | `ECHO_SERVER_REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
 | `ECHO_SERVER_REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |
