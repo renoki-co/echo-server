@@ -104,8 +104,15 @@ export class EchoServer {
     run(options: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.options = Object.assign(this.options, options);
-            this.startup();
             this.server = new Server(this.options);
+
+            Log.title(`\Echo Server v${packageFile.version} \n`);
+
+            if (this.options.development) {
+                Log.warning('Starting the server in development mode...\n');
+            } else {
+                Log.info('Starting the server...\n')
+            }
 
             this.server.init().then(io => {
                 this.init(io).then(() => {
@@ -151,25 +158,12 @@ export class EchoServer {
     }
 
     /**
-     * Text shown at startup.
-     */
-    startup(): void {
-        Log.title(`\Echo Server v${packageFile.version} \n`);
-
-        if (this.options.development) {
-            Log.warning('Starting the server in development mode...\n');
-        } else {
-            Log.info('Starting the server...\n')
-        }
-    }
-
-    /**
      * Stop the echo server.
      *
      * @return {Promise<any>}
      */
     stop(): Promise<any> {
-        console.log('Stopping the server...')
+        console.log('Stopping the server...');
 
         let promises = [];
 
@@ -220,11 +214,9 @@ export class EchoServer {
      * @return {boolean}
      */
     broadcast(channel: string, message: any): boolean {
-        if (message.socket && this.find(message.socket)) {
-            return this.toOthers(this.find(message.socket), channel, message);
-        } else {
-            return this.toAll(channel, message);
-        }
+        return (message.socket && this.find(message.socket))
+            ? this.toOthers(this.find(message.socket), channel, message)
+            : this.toAll(channel, message);
     }
 
     /**
