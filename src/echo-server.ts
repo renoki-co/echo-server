@@ -38,11 +38,14 @@ export class EchoServer {
         database: {
             driver: 'redis',
             redis: {
+                host: '127.0.0.1',
+                port: 6379,
+                password: null,
                 publishPresence: true,
                 keyPrefix: 'echo-server',
             },
             sqlite: {
-                path: '/database/laravel-echo-server.sqlite'
+                path: '/database/echo-server.sqlite',
             },
         },
         development: false,
