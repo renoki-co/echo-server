@@ -44,9 +44,6 @@ export class EchoServer {
                 publishPresence: true,
                 keyPrefix: 'echo-server',
             },
-            sqlite: {
-                path: '/database/echo-server.sqlite',
-            },
         },
         development: false,
         host: null,

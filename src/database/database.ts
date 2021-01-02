@@ -1,5 +1,4 @@
 import { DatabaseDriver } from './database-driver';
-import { SQLiteDatabase } from './sqlite';
 import { RedisDatabase } from './redis';
 import { Log } from './../log';
 
@@ -20,8 +19,6 @@ export class Database implements DatabaseDriver {
     constructor(private options: any) {
         if (options.database.driver === 'redis') {
             this.driver = new RedisDatabase(options);
-        } else if (options.database.driver === 'sqlite') {
-            this.driver = new SQLiteDatabase(options);
         } else {
             Log.error('Database driver not set.');
         }

@@ -30,7 +30,6 @@ export class Cli {
         ECHO_SERVER_REDIS_PORT: 'database.redis.port',
         ECHO_SERVER_REDIS_PASSWORD: 'database.redis.password',
         ECHO_SERVER_REDIS_KEY_PREFIX: 'database.redis.keyPrefix',
-        ECHO_SERVER_SQLITE_PATH: 'sqlite.path',
         ECHO_SERVER_SSL_CERT: 'ssl.certPath',
         ECHO_SERVER_SSL_KEY: 'ssl.keyPath',
         ECHO_SERVER_SSL_CA: 'ssl.caPath',
