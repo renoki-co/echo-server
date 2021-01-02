@@ -71,7 +71,7 @@ export class Server {
      */
     serverProtocol(): Promise<any> {
         return new Promise((resolve, reject) => {
-            if (this.options.protocol == 'https') {
+            if (this.options.protocol === 'https') {
                 this.secure().then(() => {
                     resolve(this.httpServer(true));
                 }, error => reject(error));
@@ -119,11 +119,9 @@ export class Server {
             next();
         });
 
-        if (secure) {
-            var httpServer = https.createServer(this.options, this.express);
-        } else {
-            var httpServer = http.createServer(this.express);
-        }
+        var httpServer = secure
+            ? https.createServer(this.options, this.express)
+            : http.createServer(this.express);
 
         httpServer.listen(this.getPort(), this.options.host);
 
