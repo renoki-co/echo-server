@@ -1,5 +1,5 @@
 #! /usr/bin/env node
 
-var LaravelEchoServerCli = require('../dist/cli');
+var EchoServerCli = require('../dist/cli');
 
-process.title = 'laravel-echo-server';
+process.title = 'echo-server';
