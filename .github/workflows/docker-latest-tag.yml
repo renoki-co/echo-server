@@ -16,7 +16,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    name: Latest Docker Tag
+    name: Tag Latest
 
     steps:
       - uses: actions/checkout@v2

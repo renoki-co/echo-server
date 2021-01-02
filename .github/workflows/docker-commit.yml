@@ -16,7 +16,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    name: Commit Docker Tag
+    name: Tag Commit
 
     steps:
       - uses: actions/checkout@v2

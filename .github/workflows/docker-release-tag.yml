@@ -16,7 +16,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    name: Release Docker Tag
+    name: Tag Release
 
     steps:
       - uses: actions/checkout@v2
