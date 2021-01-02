@@ -7,10 +7,8 @@ on:
     branches-ignore:
       - "*"
   pull_request:
-    tags-ignore:
-      - "*"
-    branches-ignore:
-      - "*"
+    tags: {}
+    branches: {}
 
 jobs:
   push:
