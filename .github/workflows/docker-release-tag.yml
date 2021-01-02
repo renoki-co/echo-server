@@ -6,6 +6,9 @@ on:
       - "*"
     branches-ignore:
       - "*"
+  pull_request:
+    branches-ignore:
+      - "*"
 
 jobs:
   push:
