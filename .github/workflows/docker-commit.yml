@@ -4,12 +4,10 @@ on:
   push:
     branches:
       - "*"
-    tags-ignore:
-      - "*"
   pull_request:
-    tags-ignore:
-      - "*"
     branches:
+      - "*"
+    tags-ignore:
       - "*"
 
 jobs:
