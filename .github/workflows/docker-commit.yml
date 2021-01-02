@@ -1,4 +1,4 @@
-name: Build Commit Image
+name: Docker
 
 on:
   push:

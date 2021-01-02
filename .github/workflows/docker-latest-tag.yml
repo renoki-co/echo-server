@@ -1,4 +1,4 @@
-name: Build Latest Tag
+name: Docker
 
 on:
   push:
