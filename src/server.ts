@@ -31,18 +31,11 @@ export class Server {
     }
 
     /**
-     * Start the Socket.io server.
+     * Initialize the server.
      *
      * @return {Promise<any>}
      */
-    init(): Promise<any> {
-        this.options.socketIoOptions = {
-            ...this.options.socketIoOptions,
-            ...{
-                cors: this.options.cors,
-            },
-        };
-
+    initialize(): Promise<any> {
         return new Promise((resolve, reject) => {
             this.serverProtocol().then(() => {
                 let host = this.options.host || '127.0.0.1';
@@ -61,11 +54,11 @@ export class Server {
     serverProtocol(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.options.protocol === 'https') {
-                this.secure().then(() => {
-                    resolve(this.httpServer(true));
+                this.configureSecurity().then(() => {
+                    resolve(this.buildServer(true));
                 }, error => reject(error));
             } else {
-                resolve(this.httpServer(false));
+                resolve(this.buildServer(false));
             }
         });
     }
@@ -75,7 +68,7 @@ export class Server {
      *
      * @return {Promise<any>}
      */
-    secure(): Promise<any> {
+    configureSecurity(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this.options.ssl.certPath || !this.options.ssl.keyPath) {
                 reject('SSL paths are missing in server config.');
@@ -93,12 +86,12 @@ export class Server {
     }
 
     /**
-     * Create a socket.io server.
+     * Create Socket.IO & HTTP(S) servers.
      *
      * @param  {boolean}  secure
      * @return {any}
      */
-    httpServer(secure: boolean) {
+    buildServer(secure: boolean) {
         this.express = express();
         this.express.use((req, res, next) => {
             for (var header in this.options.headers) {
@@ -115,6 +108,13 @@ export class Server {
         httpServer.listen(this.options.port, this.options.host);
 
         this.authorizeRequests();
+
+        this.options.socketIoOptions = {
+            ...this.options.socketIoOptions,
+            ...{
+                cors: this.options.cors,
+            },
+        };
 
         return this.io = io(httpServer, this.options.socketIoOptions);
     }

@@ -13,6 +13,8 @@ const { constants } = require('crypto');
 export class EchoServer {
     /**
      * Default server options.
+     *
+     * @type {any}
      */
     public options: any = {
         auth: {
@@ -70,26 +72,36 @@ export class EchoServer {
 
     /**
      * Socket.io server instance.
+     *
+     * @type {Server}
      */
     private server: Server;
 
     /**
      * Channel instance.
+     *
+     * @type {Channel}
      */
     private channel: Channel;
 
     /**
-     * Subscribers
+     * The subscribers list.
+     *
+     * @type {Subscriber[]}
      */
     private subscribers: Subscriber[];
 
     /**
-     * Http api instance.
+     * The HTTP API instance.
+     *
+     * @type {HttpApi}
      */
     private httpApi: HttpApi;
 
     /**
-     * Create a new instance.
+     * Create a new Echo Server instance.
+     *
+     * @return {void}
      */
     constructor() {
         //
@@ -114,8 +126,8 @@ export class EchoServer {
                 Log.info('Starting the server...\n')
             }
 
-            this.server.init().then(io => {
-                this.init(io).then(() => {
+            this.server.initialize().then(io => {
+                this.initialize(io).then(() => {
                     Log.info('\nServer ready!\n');
 
                     if (this.options.development) {
@@ -130,12 +142,12 @@ export class EchoServer {
     }
 
     /**
-     * Initialize the class.
+     * Initialize the websockets server.
      *
      * @param  {any}  io
      * @return {Promise<void>}
      */
-    init(io: any): Promise<void> {
+    initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
             this.channel = new Channel(io, this.options);
             this.subscribers = [];
@@ -149,9 +161,10 @@ export class EchoServer {
             }
 
             this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.cors);
-            this.httpApi.init();
 
-            this.onConnect();
+            this.httpApi.initialize();
+
+            this.registerConnectionCallbacks();
 
             this.listen().then(() => resolve(), err => Log.error(err));
         });
@@ -246,9 +259,11 @@ export class EchoServer {
     }
 
     /**
-     * On server connection.
+     * Register callbacks for on('connection') events.
+     *
+     * @return {void}
      */
-    onConnect(): void {
+    registerConnectionCallbacks(): void {
         this.server.io.on('connection', socket => {
             this.onSubscribe(socket);
             this.onUnsubscribe(socket);

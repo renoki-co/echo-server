@@ -16,9 +16,9 @@ export class HttpApi {
     }
 
     /**
-     * Initialize the API.
+     * Initialize the HTTP API.
      */
-    init(): void {
+    initialize(): void {
         this.corsMiddleware();
 
         this.express.get('/', (req, res) => this.getRoot(req, res));
@@ -29,6 +29,8 @@ export class HttpApi {
 
     /**
      * Add CORS middleware if applicable.
+     *
+     * @return {void}
      */
     corsMiddleware(): void {
         this.express.use((req, res, next) => {
