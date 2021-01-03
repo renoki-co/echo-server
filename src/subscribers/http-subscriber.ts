@@ -1,6 +1,6 @@
 import { Log } from './../log';
 import { Subscriber } from './subscriber';
-var url = require('url');
+const url = require('url');
 
 export class HttpSubscriber implements Subscriber {
     /**
@@ -73,7 +73,7 @@ export class HttpSubscriber implements Subscriber {
         body = JSON.parse(Buffer.concat(body).toString());
 
         if ((body.channels || body.channel) && body.name && body.data) {
-            var data = body.data;
+            let data = body.data;
 
             try {
                 data = JSON.parse(data);
@@ -81,13 +81,13 @@ export class HttpSubscriber implements Subscriber {
                 //
             }
 
-            var message = {
+            let message = {
                 event: body.name,
                 data: data,
                 socket: body.socket_id
             }
 
-            var channels = body.channels || [body.channel];
+            let channels = body.channels || [body.channel];
 
             if (this.options.development) {
                 Log.info(`Channel: ${channels.join(', ')}`);

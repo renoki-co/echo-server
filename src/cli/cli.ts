@@ -47,7 +47,7 @@ export class Cli {
             let optionKey = this.envVariables[envVar];
 
             if (value !== null) {
-                var json = null;
+                let json = null;
 
                 if (typeof value === 'string') {
                     try {

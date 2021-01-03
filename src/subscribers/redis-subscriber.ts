@@ -1,4 +1,4 @@
-var Redis = require('ioredis');
+const Redis = require('ioredis');
 import { Log } from './../log';
 import { Subscriber } from './subscriber';
 

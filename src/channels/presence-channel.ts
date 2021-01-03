@@ -1,6 +1,6 @@
 import { Database } from './../database';
 import { Log } from './../log';
-var _ = require('lodash');
+const _ = require('lodash');
 
 export class PresenceChannel {
     /**

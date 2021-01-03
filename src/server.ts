@@ -1,9 +1,9 @@
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var express = require('express');
-var url = require('url');
-var io = require('socket.io');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const express = require('express');
+const url = require('url');
+const io = require('socket.io');
 import { Log } from './log';
 
 export class Server {
@@ -94,14 +94,14 @@ export class Server {
     buildServer(secure: boolean) {
         this.express = express();
         this.express.use((req, res, next) => {
-            for (var header in this.options.headers) {
+            for (let header in this.options.headers) {
                 res.setHeader(header, this.options.headers[header]);
             }
 
             next();
         });
 
-        var httpServer = secure
+        let httpServer = secure
             ? https.createServer(this.options, this.express)
             : http.createServer(this.express);
 

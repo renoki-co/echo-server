@@ -118,7 +118,7 @@ export class EchoServer {
             this.options = Object.assign(this.options, options);
             this.server = new Server(this.options);
 
-            Log.title(`\Echo Server v${packageFile.version} \n`);
+            Log.title(`Echo Server v${packageFile.version}\n`);
 
             if (this.options.development) {
                 Log.warning('Starting the server in development mode...\n');

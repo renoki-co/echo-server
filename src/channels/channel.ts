@@ -67,7 +67,7 @@ export class Channel {
         try {
             data = JSON.parse(data);
         } catch (e) {
-            data = data;
+            //
         }
 
         if (data.event && data.channel) {
@@ -115,7 +115,7 @@ export class Channel {
         let isPrivate = false;
 
         this._privateChannels.forEach(privateChannel => {
-            let regex = new RegExp(privateChannel.replace('\*', '.*'));
+            let regex = new RegExp(privateChannel.replace('*', '.*'));
             if (regex.test(channel)) isPrivate = true;
         });
 
@@ -134,10 +134,12 @@ export class Channel {
             socket.join(data.channel);
 
             if (this.isPresence(data.channel)) {
-                var member = res.channel_data;
+                let member = res.channel_data;
                 try {
                     member = JSON.parse(res.channel_data);
-                } catch (e) { }
+                } catch (e) {
+                    //
+                }
 
                 this.presence.join(socket, data.channel, member);
             }
@@ -186,7 +188,7 @@ export class Channel {
         let isClientEvent = false;
 
         this._clientEvents.forEach(clientEvent => {
-            let regex = new RegExp(clientEvent.replace('\*', '.*'));
+            let regex = new RegExp(clientEvent.replace('*', '.*'));
             if (regex.test(event)) isClientEvent = true;
         });
 
