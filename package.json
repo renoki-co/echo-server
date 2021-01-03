@@ -21,9 +21,12 @@
     "esversion": 6
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w",
-    "prepublish": "npm run build"
+    "build": "./node_modules/.bin/tsc",
+    "lint": "eslint --ext .js,.ts ./src ./tests",
+    "prepublish": "npm run build",
+    "release": "npm run test && standard-version && git push --follow-tags && npm publish",
+    "test": "jest",
+    "test:watch": "npm test -- --watch"
   },
   "dependencies": {
     "colors": "^1.4.0",
@@ -34,11 +37,26 @@
     "lodash": "^4.17.15",
     "request": "^2.88.2",
     "socket.io": "^3.0.4",
+    "socket.io-redis": "^6.0.1",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.8.3",
+    "@babel/plugin-proposal-export-namespace-from": "^7.8.3",
+    "@babel/plugin-proposal-function-sent": "^7.8.3",
+    "@babel/plugin-proposal-numeric-separator": "^7.8.3",
+    "@babel/plugin-proposal-throw-expressions": "^7.8.3",
+    "@babel/plugin-transform-object-assign": "^7.8.3",
+    "@babel/preset-env": "^7.9.6",
+    "@types/jest": "^26.0.19",
     "@types/lodash": "^4.14.166",
     "@types/node": "^14.14.16",
+    "@typescript-eslint/eslint-plugin": "^4.11.1",
+    "@typescript-eslint/parser": "^4.11.1",
+    "eslint": "^7.17.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.4.4",
+    "tslib": "^2.0.3",
     "typescript": "^3.9.7"
   },
   "bin": {
