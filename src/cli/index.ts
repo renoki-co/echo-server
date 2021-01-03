@@ -10,5 +10,3 @@ let yargs = require('yargs')
     .alias('help', 'h');
 
 yargs.$0 = '';
-
-// let argv = yargs.argv;
