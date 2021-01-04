@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+    branches-ignore:
+      - "*"
+  pull_request:
+    tags: {}
+    branches: {}
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+
+    runs-on: ubuntu-latest
+
+    name: Publish NPM
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      name: Installing Node.js v14.x
+      with:
+        node-version: 14.x
+
+    - name: Installing dependencies
+      run: |
+        npm install
+
+    - name: Lint the code
+      run: |
+        npm run lint
+
+    - name: Compile TypeScript
+      run: |
+         npm run build
+
+    - name: Execute tests
+      run: |
+         npm run test
+
+    - name: Publish
+      run: |
+        npm publish
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

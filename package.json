@@ -24,7 +24,6 @@
     "build": "./node_modules/.bin/tsc",
     "lint": "eslint --ext .js,.ts ./src ./tests",
     "prepublish": "npm run build",
-    "release": "npm run test && standard-version && git push --follow-tags && npm publish",
     "test": "jest",
     "test:watch": "npm test -- --watch"
   },
