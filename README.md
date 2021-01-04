@@ -18,9 +18,6 @@ If you are using your application in your day-to-day job, on presentation demos,
 
 ## Current Milestones
 
-- Docker Container support
-- Horizontal scaling
-- Linting
 - Testing
 
 ## System Requirements
@@ -88,6 +85,22 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `SSL_KEY` | `ssl.keyPath` | `''` | - | The path for SSL key file. |
 | `SSL_CA` | `ssl.caPath` | `''` | - | The path for CA certificate file. |
 | `SSL_PASS` | `ssl.passphrase` | `''` | - | The passphrase for the SSL key file. |
+
+## Docker Images
+
+The package was built and oriented to a scalable approach, meaning it supports multi-node & multi-process configurations, but also Docker for rapid scaling on certain infrastructure, like Kubernetes.
+
+Container versioning is done the same way like the package versioning. You can find some of the tags in [the official Docker repository](https://hub.docker.com/r/renokico/echo-server).
+
+You can pull various versions:
+
+```bash
+$ docker pull renokico/echo-server:latest
+```
+
+```bash
+$ docker pull renokico/echo-server:1.0.0
+```
 
 ## 🤝 Contributing
 
