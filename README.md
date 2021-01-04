@@ -2,7 +2,12 @@ Revamped Echo Server
 ====================
 
 ![CI](https://github.com/renoki-co/echo-server/workflows/CI/badge.svg?branch=master)
-[![License](https://poser.pugx.org/renoki-co/echo-server/license)](https://packagist.org/packages/renoki-co/echo-server)
+[![codecov](https://codecov.io/gh/renoki-co/echo-server/branch/master/graph/badge.svg)](https://codecov.io/gh/renoki-co/echo-server/branch/master)
+[![StyleCI](https://github.styleci.io/repos/~styleci_code~/shield?branch=master)](https://github.styleci.io/repos/~styleci_code~)
+[![Latest Stable Version](https://img.shields.io/github/package-json/v/renoki-co/echo-server/v/stable)](https://www.npmjs.com/package/@renoki-co/echo-server)
+[![Total Downloads](https://img.shields.io/npm/dt/@renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
+[![License](https://img.shields.io/npm/l/@renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
+
 
 Echo Server is a container-ready, multi-scalable Node.js application used to host your own Socket.IO server for Laravel.
 
