@@ -18,22 +18,22 @@ export class Cli {
      * Allowed environment variables.
      */
     envVariables: any = {
-        ECHO_SERVER_AUTH_HOST: 'auth.host',
-        ECHO_SERVER_AUTH_ENDPOINT: 'auth.endpoint',
-        ECHO_SERVER_DATABASE_DRIVER: 'database.driver',
-        ECHO_SERVER_CORS_ALLOWED_ORIGINS: 'cors.origin',
-        ECHO_SERVER_DEBUG: 'development',
-        ECHO_SERVER_SOCKET_HOST: 'host',
-        ECHO_SERVER_SOCKET_PORT: 'port',
-        ECHO_SERVER_SOCKET_PROTOCOL: 'protocol',
-        ECHO_SERVER_REDIS_HOST: 'database.redis.host',
-        ECHO_SERVER_REDIS_PORT: 'database.redis.port',
-        ECHO_SERVER_REDIS_PASSWORD: 'database.redis.password',
-        ECHO_SERVER_REDIS_KEY_PREFIX: 'database.redis.keyPrefix',
-        ECHO_SERVER_SSL_CERT: 'ssl.certPath',
-        ECHO_SERVER_SSL_KEY: 'ssl.keyPath',
-        ECHO_SERVER_SSL_CA: 'ssl.caPath',
-        ECHO_SERVER_SSL_PASS: 'ssl.passphrase',
+        AUTH_HOST: 'auth.host',
+        AUTH_ENDPOINT: 'auth.endpoint',
+        DATABASE_DRIVER: 'database.driver',
+        CORS_ALLOWED_ORIGINS: 'cors.origin',
+        DEBUG: 'development',
+        SOCKET_HOST: 'host',
+        SOCKET_PORT: 'port',
+        SOCKET_PROTOCOL: 'protocol',
+        REDIS_HOST: 'database.redis.host',
+        REDIS_PORT: 'database.redis.port',
+        REDIS_PASSWORD: 'database.redis.password',
+        REDIS_KEY_PREFIX: 'database.redis.keyPrefix',
+        SSL_CERT: 'ssl.certPath',
+        SSL_KEY: 'ssl.keyPath',
+        SSL_CA: 'ssl.caPath',
+        SSL_PASS: 'ssl.passphrase',
     };
 
     /**
@@ -43,8 +43,8 @@ export class Cli {
         require('dotenv').config();
 
         for (let envVar in this.envVariables) {
-            let value = process.env[envVar] || null;
-            let optionKey = this.envVariables[envVar];
+            let value = process.env[envVar] || process.env[`ECHO_SERVER_${envVar}`] || null;
+            let optionKey = this.envVariables[envVar.replace('ECHO_SERVER_', '')];
 
             if (value !== null) {
                 let json = null;
