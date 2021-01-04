@@ -35,7 +35,7 @@ Additional information on broadcasting with Laravel can be found in the official
 You can install the package via npm:
 
 ```bash
-npm install -g echo-server-revamped
+npm install -g @renoki-co/echo-server
 ```
 
 ## 🙌 Usage
