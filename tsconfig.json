@@ -3,29 +3,30 @@
     "allowSyntheticDefaultImports": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "noImplicitAny": false,
     "outDir": "./dist",
-    "pretty": true,
+    "sourceMap": false,
+    "target": "es6",
+    "noImplicitAny": false,
     "preserveConstEnums": true,
     "removeComments": true,
-    "target": "es5",
-    "lib": ["es2015", "dom"],
-    "types": ["node"]
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "types": [
+      "jest",
+      "lodash",
+      "node"
+    ]
   },
-  "files": [
-    "src/index.ts",
-    "src/cli/index.ts"
+  "include": [
+    "./typings/**/*.ts",
+    "./src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
-  ],
-  "compileOnSave": false,
-  "buildOnSave": false,
-  "atom": {
-    "formatOnSave": false,
-    "rewriteTsconfig": false
-  },
-  "typeRoots": [
-    "../node_modules/@types"
   ]
 }

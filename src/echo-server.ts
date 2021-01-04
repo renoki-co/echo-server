@@ -13,6 +13,8 @@ const { constants } = require('crypto');
 export class EchoServer {
     /**
      * Default server options.
+     *
+     * @type {any}
      */
     public options: any = {
         auth: {
@@ -42,7 +44,7 @@ export class EchoServer {
                 port: 6379,
                 password: null,
                 publishPresence: true,
-                keyPrefix: 'echo-server',
+                keyPrefix: '',
             },
         },
         development: false,
@@ -70,26 +72,36 @@ export class EchoServer {
 
     /**
      * Socket.io server instance.
+     *
+     * @type {Server}
      */
     private server: Server;
 
     /**
      * Channel instance.
+     *
+     * @type {Channel}
      */
     private channel: Channel;
 
     /**
-     * Subscribers
+     * The subscribers list.
+     *
+     * @type {Subscriber[]}
      */
     private subscribers: Subscriber[];
 
     /**
-     * Http api instance.
+     * The HTTP API instance.
+     *
+     * @type {HttpApi}
      */
     private httpApi: HttpApi;
 
     /**
-     * Create a new instance.
+     * Create a new Echo Server instance.
+     *
+     * @return {void}
      */
     constructor() {
         //
@@ -106,7 +118,7 @@ export class EchoServer {
             this.options = Object.assign(this.options, options);
             this.server = new Server(this.options);
 
-            Log.title(`\Echo Server v${packageFile.version} \n`);
+            Log.title(`Echo Server v${packageFile.version}\n`);
 
             if (this.options.development) {
                 Log.warning('Starting the server in development mode...\n');
@@ -114,13 +126,12 @@ export class EchoServer {
                 Log.info('Starting the server...\n')
             }
 
-            this.server.init().then(io => {
-                this.init(io).then(() => {
+            this.server.initialize().then(io => {
+                this.initialize(io).then(() => {
                     Log.info('\nServer ready!\n');
 
                     if (this.options.development) {
-                        Log.info(`Current options:\n`);
-                        console.log(this.options);
+                        Log.info({ options: this.options });
                     }
 
                     resolve(this);
@@ -130,12 +141,12 @@ export class EchoServer {
     }
 
     /**
-     * Initialize the class.
+     * Initialize the websockets server.
      *
      * @param  {any}  io
      * @return {Promise<void>}
      */
-    init(io: any): Promise<void> {
+    initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
             this.channel = new Channel(io, this.options);
             this.subscribers = [];
@@ -149,9 +160,10 @@ export class EchoServer {
             }
 
             this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.cors);
-            this.httpApi.init();
 
-            this.onConnect();
+            this.httpApi.initialize();
+
+            this.registerConnectionCallbacks();
 
             this.listen().then(() => resolve(), err => Log.error(err));
         });
@@ -203,7 +215,7 @@ export class EchoServer {
      * @return {any}
      */
     find(socketId: string): any {
-        return this.server.io.sockets.connected[socketId];
+        return this.server.io.sockets.sockets.get(socketId);
     }
 
     /**
@@ -246,9 +258,11 @@ export class EchoServer {
     }
 
     /**
-     * On server connection.
+     * Register callbacks for on('connection') events.
+     *
+     * @return {void}
      */
-    onConnect(): void {
+    registerConnectionCallbacks(): void {
         this.server.io.on('connection', socket => {
             this.onSubscribe(socket);
             this.onUnsubscribe(socket);
@@ -289,7 +303,10 @@ export class EchoServer {
      */
     onDisconnecting(socket: any): void {
         socket.on('disconnecting', (reason) => {
-            Object.keys(socket.rooms).forEach(room => {
+            socket.rooms.forEach(room => {
+                // Each socket has a list of channels defined by us and his own channel
+                // that has the same name as their unique socket ID. We don't want it to
+                // be disconnected from that one and instead disconnect it from our defined channels.
                 if (room !== socket.id) {
                     this.channel.leave(socket, room, reason);
                 }

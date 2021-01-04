@@ -58,34 +58,36 @@ The main differences are that Echo Revamped gets rid of the idea of `Clients` an
 Since there is no configuration file, you may declare the parameters using environment variables directly passed in the CLI, either as key-value attributes in an `.env` file at the root of the project:
 
 ```bash
-$ ECHO_DATABASE_DRIVER=redis echo-server start
+$ DATABASE_DRIVER=redis echo-server start
 ```
+
+When using .env, you shall prefix them with `ECHO_SERVER_`:
 
 ```bash
 # Within your .env file
-ECHO_DATABASE_DRIVER=redis
+ECHO_SERVER_DATABASE_DRIVER=redis
 ```
 
 ### Available environment variables
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
-| `ECHO_SERVER_AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
-| `ECHO_SERVER_AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
-| `ECHO_SERVER_DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
-| `ECHO_SERVER_CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http:/127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
-| `ECHO_SERVER_DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
-| `ECHO_SERVER_SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
-| `ECHO_SERVER_SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
-| `ECHO_SERVER_SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
-| `ECHO_SERVER_REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
-| `ECHO_SERVER_REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
-| `ECHO_SERVER_REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |
-| `ECHO_SERVER_REDIS_KEY_PREFIX` | `database.redis.keyPrefix` | `echo-server` | - | The key prefix for Redis. Only for `redis` driver. |
-| `ECHO_SERVER_SSL_CERT` | `ssl.certPath` | `''` | - | The path for SSL certificate file. |
-| `ECHO_SERVER_SSL_KEY` | `ssl.keyPath` | `''` | - | The path for SSL key file. |
-| `ECHO_SERVER_SSL_CA` | `ssl.caPath` | `''` | - | The path for CA certificate file. |
-| `ECHO_SERVER_SSL_PASS` | `ssl.passphrase` | `''` | - | The passphrase for the SSL key file. |
+| `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
+| `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
+| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
+| `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http:/127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
+| `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
+| `SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
+| `SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
+| `SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
+| `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
+| `REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
+| `REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |
+| `REDIS_KEY_PREFIX` | `database.redis.keyPrefix` | `echo-server` | - | The key prefix for Redis. Only for `redis` driver. |
+| `SSL_CERT` | `ssl.certPath` | `''` | - | The path for SSL certificate file. |
+| `SSL_KEY` | `ssl.keyPath` | `''` | - | The path for SSL key file. |
+| `SSL_CA` | `ssl.caPath` | `''` | - | The path for CA certificate file. |
+| `SSL_PASS` | `ssl.passphrase` | `''` | - | The passphrase for the SSL key file. |
 
 ## 🤝 Contributing
 

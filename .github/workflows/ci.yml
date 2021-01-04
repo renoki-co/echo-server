@@ -37,5 +37,14 @@ jobs:
       run: |
         npm install
 
-    - name: Check & Compile TypeScript
-      uses: icrawl/action-tsc@v1
+    - name: Lint the code
+      run: |
+        npm run lint
+
+    - name: Compile TypeScript
+      run: |
+         npm run build
+
+    - name: Execute tests
+      run: |
+         npm run test

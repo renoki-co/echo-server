@@ -31,8 +31,8 @@ export class Database implements DatabaseDriver {
      * @return {Promise<any>}
      */
     get(key: string): Promise<any> {
-        return this.driver.get(key)
-    };
+        return this.driver.get(key);
+    }
 
     /**
      * Set a value to the database.
@@ -42,5 +42,5 @@ export class Database implements DatabaseDriver {
      */
     set(key: string, value: any): void {
         this.driver.set(key, value);
-    };
+    }
 }

@@ -1,9 +1,11 @@
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var express = require('express');
-var url = require('url');
-var io = require('socket.io');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const express = require('express');
+const url = require('url');
+const io = require('socket.io');
+const Redis = require('ioredis');
+const redisAdapter = require('socket.io-redis');
 import { Log } from './log';
 
 export class Server {
@@ -31,37 +33,21 @@ export class Server {
     }
 
     /**
-     * Start the Socket.io server.
+     * Initialize the server.
      *
      * @return {Promise<any>}
      */
-    init(): Promise<any> {
-        this.options.socketIoOptions = {
-            ...this.options.socketIoOptions,
-            ...{
-                cors: this.options.cors,
-            },
-        };
-
+    initialize(): Promise<any> {
         return new Promise((resolve, reject) => {
             this.serverProtocol().then(() => {
                 let host = this.options.host || '127.0.0.1';
-                Log.success(`Running at ${host} on port ${this.getPort()}`);
+                Log.success(`Running at ${host} on port ${this.options.port}`);
+
+                this.configureAdapters();
 
                 resolve(this.io);
             }, error => reject(error));
         });
-    }
-
-    /**
-     * Sanitize the port number from any extra characters
-     *
-     * @return {number}
-     */
-    getPort() {
-        let portRegex = /([0-9]{2,5})[\/]?$/;
-        let portToUse = String(this.options.port).match(portRegex); // index 1 contains the cleaned port number only
-        return Number(portToUse[1]);
     }
 
     /**
@@ -72,11 +58,11 @@ export class Server {
     serverProtocol(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.options.protocol === 'https') {
-                this.secure().then(() => {
-                    resolve(this.httpServer(true));
+                this.configureSecurity().then(() => {
+                    resolve(this.buildServer(true));
                 }, error => reject(error));
             } else {
-                resolve(this.httpServer(false));
+                resolve(this.buildServer(false));
             }
         });
     }
@@ -86,7 +72,7 @@ export class Server {
      *
      * @return {Promise<any>}
      */
-    secure(): Promise<any> {
+    configureSecurity(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this.options.ssl.certPath || !this.options.ssl.keyPath) {
                 reject('SSL paths are missing in server config.');
@@ -104,30 +90,55 @@ export class Server {
     }
 
     /**
-     * Create a socket.io server.
+     * Create Socket.IO & HTTP(S) servers.
      *
      * @param  {boolean}  secure
      * @return {any}
      */
-    httpServer(secure: boolean) {
+    buildServer(secure: boolean) {
         this.express = express();
         this.express.use((req, res, next) => {
-            for (var header in this.options.headers) {
+            for (let header in this.options.headers) {
                 res.setHeader(header, this.options.headers[header]);
             }
 
             next();
         });
 
-        var httpServer = secure
+        let httpServer = secure
             ? https.createServer(this.options, this.express)
             : http.createServer(this.express);
 
-        httpServer.listen(this.getPort(), this.options.host);
+        httpServer.listen(this.options.port, this.options.host);
 
         this.authorizeRequests();
 
+        this.options.socketIoOptions = {
+            ...this.options.socketIoOptions,
+            ...{
+                cors: this.options.cors,
+            },
+        };
+
         return this.io = io(httpServer, this.options.socketIoOptions);
+    }
+
+    /**
+     * Configure the Socket.IO adapters.
+     *
+     * @return {void}
+     */
+    configureAdapters(): void {
+        if (this.options.database.driver === 'redis') {
+            let pubClient = new Redis(this.options.database.redis);
+            let subClient = new Redis(this.options.database.redis);
+
+            this.io.adapter(redisAdapter({
+                key: 'redis-adapter',
+                pubClient: pubClient,
+                subClient: subClient,
+            }));
+        }
     }
 
     /**

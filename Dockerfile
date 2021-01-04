@@ -5,9 +5,11 @@ LABEL maintainer="Renoki Co. <alex@renoki.org>"
 COPY . /app
 
 RUN cd /app && \
-    npm ci && \
-    npm run prepublish && \
-    ln -s /app/bin/server.js /usr/bin/echo-server
+    npm install && \
+    npm run lint && \
+    npm run build && \
+    ln -s /app/bin/server.js /usr/bin/echo-server && \
+    rm -rf src/ tests/
 
 EXPOSE 6001
 
