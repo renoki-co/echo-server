@@ -34,7 +34,11 @@ export class PrivateChannel {
         };
 
         if (this.options.development) {
-            Log.info(`[${new Date().toISOString()}] - Sending auth request to: ${options.url}\n`);
+            Log.info({
+                time: new Date().toISOString(),
+                url: options.url,
+                action: 'auth',
+            });
         }
 
         return this.serverRequest(socket, options);
@@ -118,7 +122,12 @@ export class PrivateChannel {
                     reject({ reason: 'Client can not be authenticated, got HTTP status ' + response.statusCode, status: response.statusCode });
                 } else {
                     if (this.options.development) {
-                        Log.info(`[${new Date().toISOString()}] - ${socket.id} authenticated for: ${options.form.channel_name}`);
+                        Log.info({
+                            time: new Date().toISOString(),
+                            socketId: socket.id,
+                            action: 'auth_success',
+                            channel: options.form.channel_name,
+                        });
                     }
 
                     try {

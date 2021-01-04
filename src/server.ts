@@ -4,6 +4,8 @@ const https = require('https');
 const express = require('express');
 const url = require('url');
 const io = require('socket.io');
+const Redis = require('ioredis');
+const redisAdapter = require('socket.io-redis');
 import { Log } from './log';
 
 export class Server {
@@ -40,6 +42,8 @@ export class Server {
             this.serverProtocol().then(() => {
                 let host = this.options.host || '127.0.0.1';
                 Log.success(`Running at ${host} on port ${this.options.port}`);
+
+                this.configureAdapters();
 
                 resolve(this.io);
             }, error => reject(error));
@@ -117,6 +121,24 @@ export class Server {
         };
 
         return this.io = io(httpServer, this.options.socketIoOptions);
+    }
+
+    /**
+     * Configure the Socket.IO adapters.
+     *
+     * @return {void}
+     */
+    configureAdapters(): void {
+        if (this.options.database.driver === 'redis') {
+            let pubClient = new Redis(this.options.database.redis);
+            let subClient = new Redis(this.options.database.redis);
+
+            this.io.adapter(redisAdapter({
+                key: 'redis-adapter',
+                pubClient: pubClient,
+                subClient: subClient,
+            }));
+        }
     }
 
     /**

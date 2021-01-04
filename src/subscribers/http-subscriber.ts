@@ -90,8 +90,7 @@ export class HttpSubscriber implements Subscriber {
             let channels = body.channels || [body.channel];
 
             if (this.options.development) {
-                Log.info(`Channel: ${channels.join(', ')}`);
-                Log.info(`Event: ${message.event}`);
+                Log.info({ channels, event: JSON.stringify(message.event) });
             }
 
             channels.forEach(channel => broadcast(channel, message));

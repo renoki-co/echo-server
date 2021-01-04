@@ -65,7 +65,7 @@ export class HttpApi {
         let rooms = this.io.sockets.adapter.rooms;
         let channels = {};
 
-        Object.keys(rooms).forEach(function(channelName) {
+        rooms.keys().forEach(function(channelName) {
             if (rooms[channelName].sockets[channelName]) {
                 return;
             }
@@ -75,7 +75,7 @@ export class HttpApi {
             }
 
             channels[channelName] = {
-                subscription_count: rooms[channelName].length,
+                subscription_count: rooms.get(channelName).size,
                 occupied: true
             };
         });
@@ -92,8 +92,8 @@ export class HttpApi {
      */
     getChannel(req: any, res: any): void {
         let channelName = req.params.channelName;
-        let room = this.io.sockets.adapter.rooms[channelName];
-        let subscriptionCount = room ? room.length : 0;
+        let room = this.io.sockets.adapter.rooms.get(channelName);
+        let subscriptionCount = room ? room.size : 0;
 
         let result = {
             subscription_count: subscriptionCount,

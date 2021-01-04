@@ -36,12 +36,16 @@ export class RedisSubscriber implements Subscriber {
     subscribe(callback): Promise<void> {
         return new Promise((resolve, reject) => {
             this._redis.on('pmessage', (subscribed, channel, message) => {
+                // Ignore socket.io-redis adapter messages.
+                if (channel.startsWith('redis-adapter')) {
+                    return;
+                }
+
                 try {
                     message = JSON.parse(message);
 
                     if (this.options.development) {
-                        Log.info(`Channel: ${channel}`);
-                        Log.info(`Event: ${message.event}`);
+                        Log.info({ channel, event: JSON.stringify(message.event) });
                     }
 
                     callback(channel.substring(this._keyPrefix.length), message);
@@ -54,7 +58,7 @@ export class RedisSubscriber implements Subscriber {
 
             this._redis.psubscribe(`${this._keyPrefix}*`, (err, count) => {
                 if (err) {
-                    reject('Redis could not subscribe.')
+                    reject('Redis could not subscribe.');
                 }
 
                 Log.success('Listening for redis events...');

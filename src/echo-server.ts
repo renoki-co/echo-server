@@ -44,7 +44,7 @@ export class EchoServer {
                 port: 6379,
                 password: null,
                 publishPresence: true,
-                keyPrefix: 'echo-server',
+                keyPrefix: '',
             },
         },
         development: false,
@@ -131,8 +131,7 @@ export class EchoServer {
                     Log.info('\nServer ready!\n');
 
                     if (this.options.development) {
-                        Log.info(`Current options:\n`);
-                        console.log(this.options);
+                        Log.info({ options: this.options });
                     }
 
                     resolve(this);
@@ -216,7 +215,7 @@ export class EchoServer {
      * @return {any}
      */
     find(socketId: string): any {
-        return this.server.io.sockets.connected[socketId];
+        return this.server.io.sockets.sockets.get(socketId);
     }
 
     /**
@@ -304,7 +303,10 @@ export class EchoServer {
      */
     onDisconnecting(socket: any): void {
         socket.on('disconnecting', (reason) => {
-            Object.keys(socket.rooms).forEach(room => {
+            socket.rooms.forEach(room => {
+                // Each socket has a list of channels defined by us and his own channel
+                // that has the same name as their unique socket ID. We don't want it to
+                // be disconnected from that one and instead disconnect it from our defined channels.
                 if (room !== socket.id) {
                     this.channel.leave(socket, room, reason);
                 }

@@ -76,7 +76,7 @@ export class Channel {
                 this.isPrivate(data.channel) &&
                 this.isInChannel(socket, data.channel)
             ) {
-                this.io.sockets.connected[socket.id]
+                this.io.sockets.connected.get(socket.id)
                     .broadcast.to(data.channel)
                     .emit(data.event, data.channel, data.data);
             }
@@ -100,7 +100,13 @@ export class Channel {
             socket.leave(channel);
 
             if (this.options.development) {
-                Log.info(`[${new Date().toISOString()}] - ${socket.id} left channel: ${channel} (${reason})`);
+                Log.info({
+                    time: new Date().toISOString(),
+                    socketId: socket.id,
+                    action: 'leave',
+                    channel,
+                    reason,
+                });
             }
         }
     }
@@ -174,7 +180,12 @@ export class Channel {
      */
     onJoin(socket: any, channel: string): void {
         if (this.options.development) {
-            Log.info(`[${new Date().toISOString()}] - ${socket.id} joined channel: ${channel}`);
+            Log.info({
+                time: new Date().toISOString(),
+                socketId: socket.id,
+                action: 'onJoin',
+                channel,
+            });
         }
     }
 
