@@ -17,6 +17,8 @@
       "dom"
     ],
     "types": [
+      "jest",
+      "lodash",
       "node"
     ]
   },
