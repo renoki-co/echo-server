@@ -1,6 +1,6 @@
 import { DatabaseDriver } from './database-driver';
-import { RedisDatabase } from './redis';
 import { Log } from './../log';
+import { RedisDatabase } from './redis';
 
 /**
  * Class that controls the key/value data store.

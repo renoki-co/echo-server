@@ -1,5 +1,6 @@
 import { Log } from './../log';
-let url = require('url');
+
+const url = require('url');
 
 export class HttpApi {
     /**

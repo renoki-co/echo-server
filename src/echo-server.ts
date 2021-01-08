@@ -1,9 +1,10 @@
-import { HttpSubscriber, RedisSubscriber, Subscriber } from './subscribers';
-import { Channel } from './channels';
-import { Server } from './server';
-import { HttpApi } from './api';
-import { Log } from './log';
 import { AppManager } from './app-managers/app-manager';
+import { Channel } from './channels';
+import { HttpApi } from './api';
+import { HttpSubscriber, RedisSubscriber, Subscriber } from './subscribers';
+import { Log } from './log';
+import { Server } from './server';
+
 const packageFile = require('../package.json');
 const { constants } = require('crypto');
 

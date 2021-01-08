@@ -1,7 +1,7 @@
-let request = require('request');
-let url = require('url');
-import { Channel } from './channel';
 import { Log } from './../log';
+
+const request = require('request');
+const url = require('url');
 
 export class PrivateChannel {
     /**

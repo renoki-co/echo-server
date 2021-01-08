@@ -1,6 +1,6 @@
+import { Log } from './../log';
 import { PresenceChannel } from './presence-channel';
 import { PrivateChannel } from './private-channel';
-import { Log } from './../log';
 
 export class Channel {
     /**

@@ -1,15 +1,15 @@
+import { AppManager } from './app-managers/app-manager';
+import { Log } from './log';
+
+const express = require('express');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-const express = require('express');
-const url = require('url');
-const io = require('socket.io');
 const Redis = require('ioredis');
+const io = require('socket.io');
 const redisAdapter = require('socket.io-redis');
 const bodyParser = require('body-parser');
 const Pusher = require('pusher');
-import { Log } from './log';
-import { AppManager } from './app-managers/app-manager';
 
 export class Server {
     /**
