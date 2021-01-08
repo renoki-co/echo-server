@@ -1,12 +1,13 @@
+import { Log } from './log';
+
+const express = require('express');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-const express = require('express');
-const url = require('url');
-const io = require('socket.io');
 const Redis = require('ioredis');
+const io = require('socket.io');
 const redisAdapter = require('socket.io-redis');
-import { Log } from './log';
+const url = require('url');
 
 export class Server {
     /**

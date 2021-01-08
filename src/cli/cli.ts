@@ -1,4 +1,5 @@
 import * as dot from 'dot-wild';
+
 const echo = require('./../../dist');
 
 export class Cli {

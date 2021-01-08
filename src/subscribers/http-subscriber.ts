@@ -1,6 +1,5 @@
 import { Log } from './../log';
 import { Subscriber } from './subscriber';
-const url = require('url');
 
 export class HttpSubscriber implements Subscriber {
     /**
