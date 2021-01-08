@@ -8,13 +8,4 @@ export interface AppManagerDriver {
      * @return {App|null}
      */
     find(id: string|number): App|null;
-
-    /**
-     * Check if the given secret belongs to the app.
-     *
-     * @param  {string|number}  id
-     * @param  {string}  secret
-     * @return {boolean}
-     */
-    verifySecret(id: string|number, secret: string): boolean;
 }

@@ -6,6 +6,8 @@ const url = require('url');
 const io = require('socket.io');
 const Redis = require('ioredis');
 const redisAdapter = require('socket.io-redis');
+const bodyParser = require('body-parser');
+const Pusher = require('pusher');
 import { Log } from './log';
 import { AppManager } from './app-managers/app-manager';
 
@@ -105,6 +107,7 @@ export class Server {
      */
     buildServer(secure: boolean) {
         this.express = express();
+
         this.express.use((req, res, next) => {
             for (let header in this.options.headers) {
                 res.setHeader(header, this.options.headers[header]);
@@ -112,6 +115,8 @@ export class Server {
 
             next();
         });
+
+        this.express.use(bodyParser.json());
 
         let httpServer = secure
             ? https.createServer(this.options, this.express)
@@ -169,12 +174,32 @@ export class Server {
      * @return {boolean}
      */
     canAccess(req: any): boolean {
-        let appId = this.getAppId(req);
-        let secret = this.getSecretKey(req);
+        let app = this._appManager.find(this.getAppId(req));
 
-        return appId && secret
-            ? this._appManager.verifySecret(appId, secret)
-            : false;
+        if (! app) {
+            return false;
+        }
+
+        let key = req.query.auth_key;
+        let signature = req.query.auth_signature;
+        let timestamp = req.query.timestamp;
+        let version = req.query.auth_version ? req.query.auth_version : '1.0';
+        let bodyMD5 = req.query.body_md5;
+
+        const pusher = new Pusher({
+            appId: app.id,
+            key: app.key,
+            secret: app.secret,
+        });
+
+        // console.log({
+        //     query: req.query,
+        //     params: req.params,
+        //     body: req.body,
+        //     expectedQuery: pusher.createSignedQueryString(req),
+        // });
+
+        return true;
     }
 
     /**
@@ -185,24 +210,6 @@ export class Server {
      */
     getAppId(req: any): string|null {
         return req.params.appId ? req.params.appId : null;
-    }
-
-    /**
-     * Get the API token from the request.
-     *
-     * @param  {any}  req
-     * @return {string|null}
-     */
-    getSecretKey(req: any): string|null {
-        if (req.headers.authorization) {
-            return req.headers.authorization.replace('Bearer ', '');
-        }
-
-        if (url.parse(req.url, true).query.auth_key) {
-            return url.parse(req.url, true).query.auth_key;
-        }
-
-        return null;
     }
 
     /**

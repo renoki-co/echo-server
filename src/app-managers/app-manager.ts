@@ -34,15 +34,4 @@ export class AppManager implements AppManagerDriver {
     find(id: string|number): App|null {
         return this.driver.find(id);
     }
-
-    /**
-     * Check if the given secret belongs to the app.
-     *
-     * @param  {string|number}  id
-     * @param  {string}  secret
-     * @return {boolean}
-     */
-    verifySecret(id: string|number, secret: string): boolean {
-        return this.driver.verifySecret(id, secret);
-    }
 }

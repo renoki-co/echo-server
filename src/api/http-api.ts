@@ -24,6 +24,7 @@ export class HttpApi {
         this.express.get('/apps/:appId/channels', (req, res) => this.getChannels(req, res));
         this.express.get('/apps/:appId/channels/:channelName', (req, res) => this.getChannel(req, res));
         this.express.get('/apps/:appId/channels/:channelName/users', (req, res) => this.getChannelUsers(req, res));
+        this.express.post('/apps/:appId/events', (req, res) => this.broadcastEvent(req, res));
     }
 
     /**
@@ -140,6 +141,21 @@ export class HttpApi {
 
             res.json({ users: users });
         }, error => Log.error(error));
+    }
+
+    /**
+     * Broadcast an event.
+     *
+     * @param  {any}  req
+     * @param  {any}  res
+     * @return {boolean}
+     */
+    broadcastEvent(req: any, res: any): boolean {
+        res.json({
+            data: [],
+        });
+
+        return true;
     }
 
     /**

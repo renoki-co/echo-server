@@ -25,10 +25,11 @@ export class EchoServer {
             },
             array: {
                 apps: [
-                    // {
-                    //     id: 'echo-app',
-                    //     secret: 'echo-app-key',
-                    // },
+                    {
+                        id: 'echo-app',
+                        key: 'echo-app-key',
+                        secret: 'echo-app-secret',
+                    },
                 ],
             },
         },
