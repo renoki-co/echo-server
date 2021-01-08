@@ -1,6 +1,5 @@
 import { Log } from './../log';
 let url = require('url');
-import * as _ from 'lodash';
 
 export class HttpApi {
     /**
@@ -102,9 +101,12 @@ export class HttpApi {
 
         if (this.channel.isPresence(channelName)) {
             this.channel.presence.getMembers(channelName).then(members => {
-                result['user_count'] = _.uniqBy(members, 'user_id').length;
-
-                res.json(result);
+                res.json({
+                    ...result,
+                    ...{
+                        user_count: members.reduce((map, member) => map.set(member.user_id, member), new Map).size
+                    },
+                });
             });
         } else {
             res.json(result);
@@ -130,11 +132,9 @@ export class HttpApi {
         }
 
         this.channel.presence.getMembers(channelName).then(members => {
-            let users = [];
-
-            _.uniqBy(members, 'user_id').forEach((member: any) => {
-                users.push({ id: member.user_id, user_info: member.user_info });
-            });
+            let users = [
+                ...members.reduce((map, member) => map.set(member.user_id, member), new Map),
+            ];
 
             res.json({ users: users });
         }, error => Log.error(error));
