@@ -33,12 +33,13 @@ export class PresenceChannel {
      *
      * @param  {string}  channel
      * @param  {any}  member
+     * @param  {string|null}  namespace
      * @return {Promise<boolean>}
      */
-    isMember(channel: string, member: any): Promise<boolean> {
+    isMember(channel: string, member: any, namespace: string = null): Promise<boolean> {
         return new Promise((resolve, reject) => {
             this.getMembers(channel).then((members) => {
-                this.removeInactive(channel, members, member).then((members: any) => {
+                this.removeInactive(channel, members, member, namespace).then((members: any) => {
                     let search = members.filter((m) => m.user_id === member.user_id);
 
                     if (search && search.length) {
@@ -57,11 +58,12 @@ export class PresenceChannel {
      * @param  {string}  channel
      * @param  {any[]}  members
      * @param  {any}  member
+     * @param  {string|null}  namespace
      * @return {Promise<any>}
      */
-    removeInactive(channel: string, members: any[], member: any): Promise<any> {
+    removeInactive(channel: string, members: any[], member: any, namespace: string = null): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.io.of('/').in(channel).allSockets().then(clients => {
+            this.io.of(`/${namespace}`).to(channel).allSockets().then(clients => {
                 members = members || [];
                 members = members.filter((member) => {
                     return clients.has(member.socketId);
@@ -92,7 +94,9 @@ export class PresenceChannel {
             return;
         }
 
-        this.isMember(channel, member).then((isMember) => {
+        let appId = this.getAppId(socket);
+
+        this.isMember(channel, member, appId).then((isMember) => {
             this.getMembers(channel).then((members) => {
                 members = members || [];
                 member.socketId = socket.id;
@@ -130,7 +134,7 @@ export class PresenceChannel {
 
             delete currentMember.socketId;
             this.db.set(`${channel}:members`, otherMembers);
-            this.onLeave(channel, currentMember);
+            this.onLeave(socket, channel, currentMember);
         }, (error) => Log.error(error));
     }
 
@@ -143,19 +147,24 @@ export class PresenceChannel {
      * @return {void}
      */
     onJoin(socket: any, channel: string, member: any): void {
-        this.io.sockets.sockets.get(socket.id)
+        let appId = this.getAppId(socket);
+
+        this.io.of(`/${appId}`).sockets.sockets.get(socket.id)
             .broadcast.to(channel).emit('presence:joining', channel, member);
     }
 
     /**
      * On leave emitter.
      *
+     * @param  {any}  socket
      * @param  {string}  channel
      * @param  {any}  member
      * @return {void}
      */
-    onLeave(channel: string, member: any): void {
-        this.io.to(channel).emit('presence:leaving', channel, member);
+    onLeave(socket: any, channel: string, member: any): void {
+        let appId = this.getAppId(socket);
+
+        this.io.of(`/${appId}`).to(channel).emit('presence:leaving', channel, member);
     }
 
     /**
@@ -167,6 +176,18 @@ export class PresenceChannel {
      * @return {void}
      */
     onSubscribed(socket: any, channel: string, members: any[]) {
-        this.io.to(socket.id).emit('presence:subscribed', channel, members);
+        let appId = this.getAppId(socket);
+
+        this.io.of(`/${appId}`).to(socket.id).emit('presence:subscribed', channel, members);
+    }
+
+    /**
+     * Get the app ID from the socket connection.
+     *
+     * @param  {any}  socket
+     * @return {string|null}
+     */
+    getAppId(socket: any): string|null {
+        return socket.request.headers['X-App-Id'];
     }
 }

@@ -3,7 +3,7 @@ import { Channel } from './channels';
 import { Server } from './server';
 import { HttpApi } from './api';
 import { Log } from './log';
-import * as fs from 'fs';
+import { AppManager } from './app-managers/app-manager';
 const packageFile = require('../package.json');
 const { constants } = require('crypto');
 
@@ -17,6 +17,21 @@ export class EchoServer {
      * @type {any}
      */
     public options: any = {
+        appManager: {
+            driver: 'array',
+            api: {
+                host: 'http://127.0.0.1',
+                endpoint: '/echo-server/app',
+            },
+            array: {
+                apps: [
+                    // {
+                    //     id: 'echo-app',
+                    //     secret: 'echo-app-key',
+                    // },
+                ],
+            },
+        },
         auth: {
             host: 'http://127.0.0.1',
             endpoint: '/broadcasting/auth',
@@ -35,6 +50,7 @@ export class EchoServer {
                 'X-CSRF-TOKEN',
                 'XSRF-TOKEN',
                 'X-Socket-Id',
+                'X-App-Id',
             ],
         },
         database: {
@@ -99,12 +115,19 @@ export class EchoServer {
     private httpApi: HttpApi;
 
     /**
+     * The app manager used for client authentication.
+     *
+     * @type {AppManager}
+     */
+    protected _appManager;
+
+    /**
      * Create a new Echo Server instance.
      *
      * @return {void}
      */
     constructor() {
-        //
+        this._appManager = new AppManager(this.options);
     }
 
     /**
@@ -212,10 +235,21 @@ export class EchoServer {
      * Return a channel by its socket id.
      *
      * @param  {string}  socketId
+     * @param  {string|null}  namespace
      * @return {any}
      */
-    find(socketId: string): any {
-        return this.server.io.sockets.sockets.get(socketId);
+    find(socketId: string, namespace: string = null): any {
+        return this.server.io.of(`/${namespace}`).sockets.sockets.get(socketId);
+    }
+
+    /**
+     * Get the App ID from the socket connection.
+     *
+     * @param  {any}  socket
+     * @return {string|number|undefined}
+     */
+    getAppId(socket: any): string|number|undefined {
+        return socket.request.headers['X-App-Id'];
     }
 
     /**
@@ -226,9 +260,9 @@ export class EchoServer {
      * @return {boolean}
      */
     broadcast(channel: string, message: any): boolean {
-        return (message.socket && this.find(message.socket))
-            ? this.toOthers(this.find(message.socket), channel, message)
-            : this.toAll(channel, message);
+        return (message.socket && this.find(message.socket, message.namespace))
+            ? this.toOthers(this.find(message.socket, message.namespace), channel, message)
+            : this.toAll(channel, message, message.namespace);
     }
 
     /**
@@ -242,7 +276,7 @@ export class EchoServer {
     toOthers(socket: any, channel: string, message: any): boolean {
         socket.broadcast.to(channel).emit(message.event, channel, message.data);
 
-        return true
+        return true;
     }
 
     /**
@@ -250,9 +284,11 @@ export class EchoServer {
      *
      * @param  {string}  channel
      * @param  {any}  message
+     * @param  {string|null}  namespace
+     * @return {boolean}
      */
-    toAll(channel: string, message: any): boolean {
-        this.server.io.to(channel).emit(message.event, channel, message.data);
+    toAll(channel: string, message: any, namespace: string = null): boolean {
+        this.server.io.of(`/${namespace}`).to(channel).emit(message.event, channel, message.data);
 
         return true;
     }
@@ -279,6 +315,12 @@ export class EchoServer {
      */
     onSubscribe(socket: any): void {
         socket.on('subscribe', data => {
+            let appId = this.getAppId(socket);
+
+            if (! appId || ! this._appManager.find(appId)) {
+                return socket.disconnect();
+            }
+
             this.channel.join(socket, data);
         });
     }

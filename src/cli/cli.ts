@@ -18,6 +18,7 @@ export class Cli {
      * Allowed environment variables.
      */
     envVariables: any = {
+        APPS_MANAGER_DRIVER: 'appManager.driver',
         AUTH_HOST: 'auth.host',
         AUTH_ENDPOINT: 'auth.endpoint',
         DATABASE_DRIVER: 'database.driver',

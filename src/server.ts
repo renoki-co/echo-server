@@ -7,6 +7,7 @@ const io = require('socket.io');
 const Redis = require('ioredis');
 const redisAdapter = require('socket.io-redis');
 import { Log } from './log';
+import { AppManager } from './app-managers/app-manager';
 
 export class Server {
     /**
@@ -24,12 +25,19 @@ export class Server {
     public io: any;
 
     /**
+     * The app manager used for client authentication.
+     *
+     * @type {AppManager}
+     */
+    protected _appManager;
+
+    /**
      * Create a new server instance.
      *
      * @param {any} options
      */
     constructor(private options) {
-        //
+        this._appManager = new AppManager(options);
     }
 
     /**
@@ -162,51 +170,39 @@ export class Server {
      */
     canAccess(req: any): boolean {
         let appId = this.getAppId(req);
-        let key = this.getAuthKey(req);
+        let secret = this.getSecretKey(req);
 
-        if (key && appId) {
-            let client = this.options.clients.find((client) => {
-                return client.appId === appId;
-            });
-
-            if (client) {
-                return client.key === key;
-            }
-        }
-
-        return false;
+        return appId && secret
+            ? this._appManager.verifySecret(appId, secret)
+            : false;
     }
 
     /**
-     * Get the appId from the URL
+     * Get the app ID from the URL.
      *
      * @param  {any}  req
-     * @return {string|boolean}
+     * @return {string|null}
      */
-    getAppId(req: any): (string | boolean) {
-        if (req.params.appId) {
-            return req.params.appId;
-        }
-
-        return false;
+    getAppId(req: any): string|null {
+        return req.params.appId ? req.params.appId : null;
     }
 
     /**
-     * Get the api token from the request.
+     * Get the API token from the request.
      *
      * @param  {any}  req
-     * @return {string|boolean}
+     * @return {string|null}
      */
-    getAuthKey(req: any): (string | boolean) {
+    getSecretKey(req: any): string|null {
         if (req.headers.authorization) {
             return req.headers.authorization.replace('Bearer ', '');
         }
 
         if (url.parse(req.url, true).query.auth_key) {
-            return url.parse(req.url, true).query.auth_key
+            return url.parse(req.url, true).query.auth_key;
         }
 
-        return false;
+        return null;
     }
 
     /**

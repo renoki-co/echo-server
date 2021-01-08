@@ -73,18 +73,19 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
+| `APPS_MANAGER_DRIVER` | `appManager.driver` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
 | `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
 | `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
-| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http:/127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
+| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
-| `SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
-| `SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
-| `SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
 | `REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
 | `REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |
 | `REDIS_KEY_PREFIX` | `database.redis.keyPrefix` | `echo-server` | - | The key prefix for Redis. Only for `redis` driver. |
+| `SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
+| `SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
+| `SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
 | `SSL_CERT` | `ssl.certPath` | `''` | - | The path for SSL certificate file. |
 | `SSL_KEY` | `ssl.keyPath` | `''` | - | The path for SSL key file. |
 | `SSL_CA` | `ssl.caPath` | `''` | - | The path for CA certificate file. |

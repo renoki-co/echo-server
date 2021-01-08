@@ -22,9 +22,9 @@ export class HttpApi {
         this.corsMiddleware();
 
         this.express.get('/', (req, res) => this.getRoot(req, res));
-        // this.express.get('/apps/:appId/channels', (req, res) => this.getChannels(req, res));
-        // this.express.get('/apps/:appId/channels/:channelName', (req, res) => this.getChannel(req, res));
-        // this.express.get('/apps/:appId/channels/:channelName/users', (req, res) => this.getChannelUsers(req, res));
+        this.express.get('/apps/:appId/channels', (req, res) => this.getChannels(req, res));
+        this.express.get('/apps/:appId/channels/:channelName', (req, res) => this.getChannel(req, res));
+        this.express.get('/apps/:appId/channels/:channelName/users', (req, res) => this.getChannelUsers(req, res));
     }
 
     /**
@@ -61,11 +61,12 @@ export class HttpApi {
      * @return {void}
      */
     getChannels(req: any, res: any): void {
+        let appId = this.getAppId(req);
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
-        let rooms = this.io.sockets.adapter.rooms;
+        let rooms = this.io.of(`/${appId}`).sockets.adapter.rooms;
         let channels = {};
 
-        rooms.keys().forEach(function(channelName) {
+        rooms.keys().forEach(function (channelName) {
             if (rooms[channelName].sockets[channelName]) {
                 return;
             }
@@ -91,8 +92,9 @@ export class HttpApi {
      * @return {void}
      */
     getChannel(req: any, res: any): void {
+        let appId = this.getAppId(req);
         let channelName = req.params.channelName;
-        let room = this.io.sockets.adapter.rooms.get(channelName);
+        let room = this.io.of(`/${appId}`).sockets.adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
 
         let result = {
@@ -153,5 +155,15 @@ export class HttpApi {
         res.json({ error: message });
 
         return false;
+    }
+
+    /**
+     * Get the app ID from the URL.
+     *
+     * @param  {any}  req
+     * @return {string|null}
+     */
+    getAppId(req: any): string|null {
+        return req.params.appId ? req.params.appId : null;
     }
 }
