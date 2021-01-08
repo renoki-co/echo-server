@@ -22,7 +22,7 @@ export class EchoServer {
             endpoint: '/broadcasting/auth',
         },
         cors: {
-            credentials: false,
+            credentials: true,
             origin: ['http://127.0.0.1'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: [
