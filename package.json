@@ -1,6 +1,6 @@
 {
   "name": "@renoki-co/echo-server",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Echo Server is a container-ready, multi-scalable Node.js application used to host your own Socket.IO server for Laravel.",
   "repository": {
     "type": "git",
@@ -33,7 +33,6 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "ioredis": "^4.19.0",
-    "lodash": "^4.17.15",
     "request": "^2.88.2",
     "socket.io": "^3.0.4",
     "socket.io-redis": "^6.0.1",

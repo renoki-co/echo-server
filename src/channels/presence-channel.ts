@@ -1,6 +1,5 @@
 import { Database } from './../database';
 import { Log } from './../log';
-const _ = require('lodash');
 
 export class PresenceChannel {
     /**
@@ -104,7 +103,9 @@ export class PresenceChannel {
 
                 this.db.set(`${channel}:members`, members);
 
-                members = _.uniqBy(members.reverse(), 'user_id');
+                members = [
+                    ...members.reduce((map, member) => map.set(member.user_id, member), new Map).values()
+                ];
 
                 this.onSubscribed(socket, channel, members);
 
