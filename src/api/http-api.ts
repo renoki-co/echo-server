@@ -64,12 +64,11 @@ export class HttpApi {
     getChannels(req: any, res: any): void {
         let appId = this.getAppId(req);
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
-        // TODO: Fix adapter
-        let rooms = this.io.of(`/${appId}`).sockets.adapter.rooms;
+        let rooms = this.io.of(`/${appId}`).adapter.rooms;
         let channels = {};
 
-        rooms.keys().forEach(function (channelName) {
-            if (rooms[channelName].sockets[channelName]) {
+        rooms.forEach((sockets, channelName) => {
+            if (sockets.size === 0) {
                 return;
             }
 
@@ -78,10 +77,10 @@ export class HttpApi {
             }
 
             channels[channelName] = {
-                subscription_count: rooms.get(channelName).size,
+                subscription_count: sockets.size,
                 occupied: true
             };
-        });
+        }, []);
 
         res.json({ channels: channels });
     }
@@ -96,8 +95,7 @@ export class HttpApi {
     getChannel(req: any, res: any): void {
         let appId = this.getAppId(req);
         let channelName = req.params.channelName;
-        // TODO: Fix adapter
-        let room = this.io.of(`/${appId}`).sockets.adapter.rooms.get(channelName);
+        let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
 
         let result = {
@@ -138,11 +136,9 @@ export class HttpApi {
         }
 
         this.channel.presence.getMembers(channelName).then(members => {
-            let users = [
-                ...members.reduce((map, member) => map.set(member.user_id, member), new Map),
-            ];
-
-            res.json({ users: users });
+            res.json({
+                users: [...members.reduce((map, member) => map.set(member), new Map)][0],
+            });
         }, error => Log.error(error));
     }
 
@@ -154,9 +150,18 @@ export class HttpApi {
      * @return {boolean}
      */
     broadcastEvent(req: any, res: any): boolean {
-        res.json({
-            data: [],
+        let appId = this.getAppId(req);
+        let message = req.body;
+
+        message.channels.forEach(channel => {
+            this.io.of(`/${appId}`)
+                .to(channel)
+                .emit(message.name, channel, message.data);
         });
+
+        res.json([
+            //
+        ]);
 
         return true;
     }

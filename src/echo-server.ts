@@ -235,13 +235,15 @@ export class EchoServer {
     /**
      * Return a channel by its socket id.
      *
-     * @param  {string}  socketId
+     * @param  {message}  socketId
      * @return {any}
      */
-    find(socketId: string): any {
-        // TODO: Fix adapter
-        // TODO: Laravel should pass the app id to know on which NS to publish.
-        return this.server.io.of(/.*/).sockets.sockets.get(socketId);
+    find(message: any): any {
+        return this.server.io
+            .of(/.*/) // should use message._socketio.nsp ?
+            .adapter
+            .rooms
+            .get(message.socket);
     }
 
     /**
@@ -262,8 +264,8 @@ export class EchoServer {
      * @return {boolean}
      */
     broadcast(channel: string, message: any): boolean {
-        return (message.socket && this.find(message.socket))
-            ? this.toOthers(this.find(message.socket), channel, message)
+        return (message.socket && this.find(message))
+            ? this.toOthers(this.find(message), channel, message)
             : this.toAll(channel, message);
     }
 
@@ -276,7 +278,9 @@ export class EchoServer {
      * @return {boolean}
      */
     toOthers(socket: any, channel: string, message: any): boolean {
-        socket.broadcast.to(channel).emit(message.event, channel, message.data);
+        socket.broadcast
+            .to(channel)
+            .emit(message.event, channel, message.data);
 
         return true;
     }
@@ -289,8 +293,10 @@ export class EchoServer {
      * @return {boolean}
      */
     toAll(channel: string, message: any): boolean {
-        // TODO: Laravel should send the NS to broadcast to.
-        this.server.io.of(/.*/).to(channel).emit(message.event, channel, message.data);
+        this.server.io
+            .of(/.*/)
+            .to(channel)
+            .emit(message.event, channel, message.data);
 
         return true;
     }
