@@ -52,7 +52,6 @@ export class EchoServer {
                 'X-CSRF-TOKEN',
                 'XSRF-TOKEN',
                 'X-Socket-Id',
-                'X-App-Id',
             ],
         },
         database: {
@@ -251,7 +250,7 @@ export class EchoServer {
      * @return {string|number|undefined}
      */
     getAppId(socket: any): string|number|undefined {
-        return socket.request.headers['X-App-Id'];
+        return socket.handshake.query.appId;
     }
 
     /**

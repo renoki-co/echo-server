@@ -228,6 +228,6 @@ export class Channel {
      * @return {string|number|undefined}
      */
     getAppId(socket: any): string|number|undefined {
-        return socket.request.headers['X-App-Id'];
+        return socket.handshake.query.appId;
     }
 }

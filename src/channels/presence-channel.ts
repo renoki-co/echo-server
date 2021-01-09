@@ -110,7 +110,7 @@ export class PresenceChannel {
                 this.onSubscribed(socket, channel, members);
 
                 if (!isMember) {
-                    this.onJoin(socket, channel, member);
+                    this.onJoin(socket, channel, member, appId);
                 }
             }, (error) => Log.error(error));
         }, () => {
@@ -145,12 +145,11 @@ export class PresenceChannel {
      * @param  {any}  socket
      * @param  {string}  channel
      * @param  {any}  member
+     * @param  {string|null}  namespace
      * @return {void}
      */
-    onJoin(socket: any, channel: string, member: any): void {
-        let appId = this.getAppId(socket);
-
-        this.io.of(`/${appId}`).sockets.sockets.get(socket.id)
+    onJoin(socket: any, channel: string, member: any, namespace: string = null): void {
+        this.io.of(`/${namespace}`).sockets.get(socket.id)
             .broadcast.to(channel).emit('presence:joining', channel, member);
     }
 
@@ -189,6 +188,6 @@ export class PresenceChannel {
      * @return {string|null}
      */
     getAppId(socket: any): string|null {
-        return socket.request.headers['X-App-Id'];
+        return socket.handshake.query.appId;
     }
 }

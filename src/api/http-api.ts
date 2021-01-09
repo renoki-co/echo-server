@@ -117,7 +117,7 @@ export class HttpApi {
         } else {
             res.json(result);
         }
-    }.
+    }
 
     /**
      * Get the users of a channel.
