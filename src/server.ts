@@ -125,8 +125,6 @@ export class Server {
 
         httpServer.listen(this.options.port, this.options.host);
 
-        this.authorizeRequests();
-
         this.options.socketIoOptions = {
             ...this.options.socketIoOptions,
             ...{
