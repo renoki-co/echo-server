@@ -236,11 +236,12 @@ export class EchoServer {
      * Return a channel by its socket id.
      *
      * @param  {string}  socketId
-     * @param  {string|null}  namespace
      * @return {any}
      */
-    find(socketId: string, namespace: string = null): any {
-        return this.server.io.of(`/${namespace}`).sockets.sockets.get(socketId);
+    find(socketId: string): any {
+        // TODO: Fix adapter
+        // TODO: Laravel should pass the app id to know on which NS to publish.
+        return this.server.io.of(/.*/).sockets.sockets.get(socketId);
     }
 
     /**
@@ -261,9 +262,9 @@ export class EchoServer {
      * @return {boolean}
      */
     broadcast(channel: string, message: any): boolean {
-        return (message.socket && this.find(message.socket, message.namespace))
-            ? this.toOthers(this.find(message.socket, message.namespace), channel, message)
-            : this.toAll(channel, message, message.namespace);
+        return (message.socket && this.find(message.socket))
+            ? this.toOthers(this.find(message.socket), channel, message)
+            : this.toAll(channel, message);
     }
 
     /**
@@ -285,11 +286,11 @@ export class EchoServer {
      *
      * @param  {string}  channel
      * @param  {any}  message
-     * @param  {string|null}  namespace
      * @return {boolean}
      */
-    toAll(channel: string, message: any, namespace: string = null): boolean {
-        this.server.io.of(`/${namespace}`).to(channel).emit(message.event, channel, message.data);
+    toAll(channel: string, message: any): boolean {
+        // TODO: Laravel should send the NS to broadcast to.
+        this.server.io.of(/.*/).to(channel).emit(message.event, channel, message.data);
 
         return true;
     }
@@ -300,7 +301,7 @@ export class EchoServer {
      * @return {void}
      */
     registerConnectionCallbacks(): void {
-        this.server.io.on('connection', socket => {
+        this.server.io.of(/.*/).on('connection', socket => {
             this.onSubscribe(socket);
             this.onUnsubscribe(socket);
             this.onDisconnecting(socket);

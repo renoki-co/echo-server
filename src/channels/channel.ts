@@ -64,8 +64,6 @@ export class Channel {
      * @return {void}
      */
     clientEvent(socket, data): void {
-        let appId = this.getAppId(socket);
-
         try {
             data = JSON.parse(data);
         } catch (e) {
@@ -78,7 +76,7 @@ export class Channel {
                 this.isPrivate(data.channel) &&
                 this.isInChannel(socket, data.channel)
             ) {
-                this.io.of(`/${appId}`).sockets.connected.get(socket.id)
+                this.io.of(this.getNspForSocket(socket)).sockets.connected.get(socket.id)
                     .broadcast.to(data.channel)
                     .emit(data.event, data.channel, data.data);
             }
@@ -138,8 +136,6 @@ export class Channel {
      * @return {void}
      */
     joinPrivate(socket: any, data: any): void {
-        let appId = this.getAppId(socket);
-
         this.private.authenticate(socket, data).then(res => {
             socket.join(data.channel);
 
@@ -160,7 +156,9 @@ export class Channel {
                 Log.error(error.reason);
             }
 
-            this.io.of(`/${appId}`).sockets.to(socket.id)
+            this.io.of(this.getNspForSocket(socket))
+                .sockets
+                .to(socket.id)
                 .emit('subscription_error', data.channel, error.status);
         });
     }
@@ -222,12 +220,12 @@ export class Channel {
     }
 
     /**
-     * Get the App ID from the socket connection.
+     * Extract the namespace from socket.
      *
      * @param  {any}  socket
-     * @return {string|number|undefined}
+     * @return string
      */
-    getAppId(socket: any): string|number|undefined {
-        return socket.handshake.query.appId;
+    getNspForSocket(socket: any) {
+        return socket ? socket.nsp.name : '/';
     }
 }

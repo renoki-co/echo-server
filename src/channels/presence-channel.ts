@@ -32,13 +32,13 @@ export class PresenceChannel {
      *
      * @param  {string}  channel
      * @param  {any}  member
-     * @param  {string|null}  namespace
+     * @param  {any}  socket
      * @return {Promise<boolean>}
      */
-    isMember(channel: string, member: any, namespace: string = null): Promise<boolean> {
+    isMember(channel: string, member: any, socket: any): Promise<boolean> {
         return new Promise((resolve, reject) => {
             this.getMembers(channel).then((members) => {
-                this.removeInactive(channel, members, member, namespace).then((members: any) => {
+                this.removeInactive(channel, members, socket).then((members: any) => {
                     let search = members.filter((m) => m.user_id === member.user_id);
 
                     if (search && search.length) {
@@ -56,13 +56,12 @@ export class PresenceChannel {
      *
      * @param  {string}  channel
      * @param  {any[]}  members
-     * @param  {any}  member
-     * @param  {string|null}  namespace
+     * @param  {any}  socket
      * @return {Promise<any>}
      */
-    removeInactive(channel: string, members: any[], member: any, namespace: string = null): Promise<any> {
+    removeInactive(channel: string, members: any[], socket: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.io.of(`/${namespace}`).to(channel).allSockets().then(clients => {
+            this.io.of(this.getNspForSocket(socket)).in(channel).allSockets().then(clients => {
                 members = members || [];
                 members = members.filter((member) => {
                     return clients.has(member.socketId);
@@ -93,9 +92,7 @@ export class PresenceChannel {
             return;
         }
 
-        let appId = this.getAppId(socket);
-
-        this.isMember(channel, member, appId).then((isMember) => {
+        this.isMember(channel, member, socket).then((isMember) => {
             this.getMembers(channel).then((members) => {
                 members = members || [];
                 member.socketId = socket.id;
@@ -110,7 +107,7 @@ export class PresenceChannel {
                 this.onSubscribed(socket, channel, members);
 
                 if (!isMember) {
-                    this.onJoin(socket, channel, member, appId);
+                    this.onJoin(socket, channel, member);
                 }
             }, (error) => Log.error(error));
         }, () => {
@@ -145,12 +142,15 @@ export class PresenceChannel {
      * @param  {any}  socket
      * @param  {string}  channel
      * @param  {any}  member
-     * @param  {string|null}  namespace
      * @return {void}
      */
-    onJoin(socket: any, channel: string, member: any, namespace: string = null): void {
-        this.io.of(`/${namespace}`).sockets.get(socket.id)
-            .broadcast.to(channel).emit('presence:joining', channel, member);
+    onJoin(socket: any, channel: string, member: any): void {
+        this.io.of(this.getNspForSocket(socket))
+            .sockets
+            .get(socket.id)
+            .broadcast
+            .to(channel)
+            .emit('presence:joining', channel, member);
     }
 
     /**
@@ -162,9 +162,9 @@ export class PresenceChannel {
      * @return {void}
      */
     onLeave(socket: any, channel: string, member: any): void {
-        let appId = this.getAppId(socket);
-
-        this.io.of(`/${appId}`).to(channel).emit('presence:leaving', channel, member);
+        this.io.of(this.getNspForSocket(socket))
+            .to(channel)
+            .emit('presence:leaving', channel, member);
     }
 
     /**
@@ -176,18 +176,18 @@ export class PresenceChannel {
      * @return {void}
      */
     onSubscribed(socket: any, channel: string, members: any[]) {
-        let appId = this.getAppId(socket);
-
-        this.io.of(`/${appId}`).to(socket.id).emit('presence:subscribed', channel, members);
+        this.io.of(this.getNspForSocket(socket))
+            .to(socket.id)
+            .emit('presence:subscribed', channel, members);
     }
 
     /**
-     * Get the app ID from the socket connection.
+     * Extract the namespace from socket.
      *
      * @param  {any}  socket
-     * @return {string|null}
+     * @return string
      */
-    getAppId(socket: any): string|null {
-        return socket.handshake.query.appId;
+    getNspForSocket(socket: any) {
+        return socket ? socket.nsp.name : '/';
     }
 }
