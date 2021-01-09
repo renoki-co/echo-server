@@ -61,6 +61,7 @@ export class HttpApi {
      * @return {void}
      */
     getChannels(req: any, res: any): void {
+        // TODO: Fix adapter
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
         let rooms = this.io.sockets.adapter.rooms;
         let channels = {};
@@ -91,6 +92,7 @@ export class HttpApi {
      * @return {void}
      */
     getChannel(req: any, res: any): void {
+        // TODO: Fix adapter
         let channelName = req.params.channelName;
         let room = this.io.sockets.adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
@@ -112,7 +114,7 @@ export class HttpApi {
         } else {
             res.json(result);
         }
-    }
+    }.
 
     /**
      * Get the users of a channel.

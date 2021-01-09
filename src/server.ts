@@ -98,6 +98,7 @@ export class Server {
      */
     buildServer(secure: boolean) {
         this.express = express();
+
         this.express.use((req, res, next) => {
             for (let header in this.options.headers) {
                 res.setHeader(header, this.options.headers[header]);
@@ -111,8 +112,6 @@ export class Server {
             : http.createServer(this.express);
 
         httpServer.listen(this.options.port, this.options.host);
-
-        this.authorizeRequests();
 
         this.options.socketIoOptions = {
             ...this.options.socketIoOptions,
@@ -140,87 +139,5 @@ export class Server {
                 subClient: subClient,
             }));
         }
-    }
-
-    /**
-     * Attach global protection to HTTP routes, to verify the API key.
-     */
-    authorizeRequests(): void {
-        this.express.param('appId', (req, res, next) => {
-            if (!this.canAccess(req)) {
-                return this.unauthorizedResponse(req, res);
-            }
-
-            next();
-        });
-    }
-
-    /**
-     * Check is an incoming request can access the api.
-     *
-     * @param  {any}  req
-     * @return {boolean}
-     */
-    canAccess(req: any): boolean {
-        let appId = this.getAppId(req);
-        let key = this.getAuthKey(req);
-
-        if (key && appId) {
-            let client = this.options.clients.find((client) => {
-                return client.appId === appId;
-            });
-
-            if (client) {
-                return client.key === key;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Get the appId from the URL
-     *
-     * @param  {any}  req
-     * @return {string|boolean}
-     */
-    getAppId(req: any): (string | boolean) {
-        if (req.params.appId) {
-            return req.params.appId;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get the api token from the request.
-     *
-     * @param  {any}  req
-     * @return {string|boolean}
-     */
-    getAuthKey(req: any): (string | boolean) {
-        if (req.headers.authorization) {
-            return req.headers.authorization.replace('Bearer ', '');
-        }
-
-        if (url.parse(req.url, true).query.auth_key) {
-            return url.parse(req.url, true).query.auth_key
-        }
-
-        return false;
-    }
-
-    /**
-     * Handle unauthorized requests.
-     *
-     * @param  {any}  req
-     * @param  {any}  res
-     * @return {boolean}
-     */
-    unauthorizedResponse(req: any, res: any): boolean {
-        res.statusCode = 403;
-        res.json({ error: 'Unauthorized' });
-
-        return false;
     }
 }
