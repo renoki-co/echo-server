@@ -1,15 +1,16 @@
 import { AppManager } from './app-managers/app-manager';
 import { Log } from './log';
 
+const bodyParser = require('body-parser');
 const express = require('express');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
+const Pusher = require('pusher');
 const Redis = require('ioredis');
 const io = require('socket.io');
 const redisAdapter = require('socket.io-redis');
-const bodyParser = require('body-parser');
-const Pusher = require('pusher');
+const pusherUtil = require('pusher/lib/util');
 
 export class Server {
     /**
@@ -174,32 +175,47 @@ export class Server {
      * @return {boolean}
      */
     canAccess(req: any): boolean {
+        return this.getSignedToken(req) === req.query.auth_signature;
+    }
+
+    /**
+     * Get the signed token from the given request.
+     *
+     * @param  {any}  req
+     * @return string|null
+     */
+    getSignedToken(req: any): string|null {
         let app = this._appManager.find(this.getAppId(req));
 
         if (! app) {
-            return false;
+            return;
         }
 
         let key = req.query.auth_key;
-        let signature = req.query.auth_signature;
-        let timestamp = req.query.timestamp;
-        let version = req.query.auth_version ? req.query.auth_version : '1.0';
-        let bodyMD5 = req.query.body_md5;
+        let token = new Pusher.Token(key, app.secret);
 
-        const pusher = new Pusher({
-            appId: app.id,
-            key: app.key,
-            secret: app.secret,
-        });
+        const params = {
+            auth_key: app.key,
+            auth_timestamp: req.query.auth_timestamp,
+            auth_version: req.query.auth_version,
+            ...req.params,
+        };
 
-        // console.log({
-        //     query: req.query,
-        //     params: req.params,
-        //     body: req.body,
-        //     expectedQuery: pusher.createSignedQueryString(req),
-        // });
+        delete params['auth_signature'];
+        delete params['body_md5']
+        delete params['appId'];
+        delete params['appKey'];
+        delete params['channelName'];
 
-        return true;
+        if (req.body) {
+            params['body_md5'] = pusherUtil.getMD5(JSON.stringify(req.body));
+        }
+
+        return token.sign([
+            req.method.toUpperCase(),
+            req.path,
+            pusherUtil.toOrderedArray(params).join('&'),
+        ].join("\n"));
     }
 
     /**
