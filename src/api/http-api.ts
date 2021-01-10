@@ -4,7 +4,7 @@ const url = require('url');
 
 export class HttpApi {
     /**
-     * Create new instance of http subscriber.
+     * Create new instance of HTTP API.
      *
      * @param {any} io
      * @param {any} channel
@@ -150,18 +150,24 @@ export class HttpApi {
      * @return {boolean}
      */
     broadcastEvent(req: any, res: any): boolean {
-        let appId = this.getAppId(req);
-        let message = req.body;
+        if (
+            (!!req.body.channels && !!req.body.channel) ||
+            !!req.body.name ||
+            !!req.body.data
+        ) {
+            return this.badResponse(req, res, 'Wrong format.');
+        }
 
-        message.channels.forEach(channel => {
+        let appId = this.getAppId(req);
+        let channels = req.body.channels || [req.body.channel];
+
+        channels.forEach(channel => {
             this.io.of(`/${appId}`)
                 .to(channel)
-                .emit(message.name, channel, message.data);
+                .emit(req.body.name, channel, req.body.data);
         });
 
-        res.json([
-            //
-        ]);
+        res.json({ message: 'ok' });
 
         return true;
     }

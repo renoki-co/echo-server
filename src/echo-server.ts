@@ -1,7 +1,6 @@
 import { AppManager } from './app-managers/app-manager';
 import { Channel } from './channels';
 import { HttpApi } from './api';
-import { HttpSubscriber, RedisSubscriber, Subscriber } from './subscribers';
 import { Log } from './log';
 import { Server } from './server';
 
@@ -60,7 +59,6 @@ export class EchoServer {
                 host: '127.0.0.1',
                 port: 6379,
                 password: null,
-                publishPresence: true,
                 keyPrefix: '',
             },
         },
@@ -81,10 +79,6 @@ export class EchoServer {
             caPath: '',
             passphrase: '',
         },
-        subscribers: {
-            http: true,
-            redis: true,
-        },
     };
 
     /**
@@ -100,13 +94,6 @@ export class EchoServer {
      * @type {Channel}
      */
     private channel: Channel;
-
-    /**
-     * The subscribers list.
-     *
-     * @type {Subscriber[]}
-     */
-    private subscribers: Subscriber[];
 
     /**
      * The HTTP API instance.
@@ -137,7 +124,7 @@ export class EchoServer {
      * @param  {any}  options
      * @return {Promise<any>}
      */
-    run(options: any): Promise<any> {
+    run(options: any = {}): Promise<any> {
         return new Promise((resolve, reject) => {
             this.options = Object.assign(this.options, options);
             this.server = new Server(this.options);
@@ -173,15 +160,6 @@ export class EchoServer {
     initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
             this.channel = new Channel(io, this.options);
-            this.subscribers = [];
-
-            if (this.options.subscribers.http) {
-                this.subscribers.push(new HttpSubscriber(this.server.express, this.options));
-            }
-
-            if (this.options.subscribers.redis) {
-                this.subscribers.push(new RedisSubscriber(this.options));
-            }
 
             this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.cors);
 
@@ -189,47 +167,19 @@ export class EchoServer {
 
             this.registerConnectionCallbacks();
 
-            this.listen().then(() => resolve(), err => Log.error(err));
+            resolve();
         });
     }
 
     /**
      * Stop the echo server.
      *
-     * @return {Promise<any>}
+     * @return {void}
      */
-    stop(): Promise<any> {
+    stop(): void {
         console.log('Stopping the server...');
 
-        let promises = [];
-
-        this.subscribers.forEach(subscriber => {
-            promises.push(subscriber.unsubscribe());
-        });
-
-        promises.push(this.server.io.close());
-
-        return Promise.all(promises).then(() => {
-            this.subscribers = [];
-            console.log('The Echo server has been stopped.');
-        });
-    }
-
-    /**
-     * Listen for incoming event from subscibers.
-     *
-     * @return {Promise<void>}
-     */
-    listen(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            let subscribePromises = this.subscribers.map(subscriber => {
-                return subscriber.subscribe((channel, message) => {
-                    return this.broadcast(channel, message);
-                });
-            });
-
-            Promise.all(subscribePromises).then(() => resolve());
-        });
+        this.server.io.close();
     }
 
     /**
@@ -257,51 +207,6 @@ export class EchoServer {
     }
 
     /**
-     * Broadcast events to channels from subscribers.
-     *
-     * @param  {string}  channel
-     * @param  {any}  message
-     * @return {boolean}
-     */
-    broadcast(channel: string, message: any): boolean {
-        return (message.socket && this.find(message))
-            ? this.toOthers(this.find(message), channel, message)
-            : this.toAll(channel, message);
-    }
-
-    /**
-     * Broadcast to others on channel.
-     *
-     * @param  {any}  socket
-     * @param  {string}  channel
-     * @param  {any}  message
-     * @return {boolean}
-     */
-    toOthers(socket: any, channel: string, message: any): boolean {
-        socket.broadcast
-            .to(channel)
-            .emit(message.event, channel, message.data);
-
-        return true;
-    }
-
-    /**
-     * Broadcast to all members on channel.
-     *
-     * @param  {string}  channel
-     * @param  {any}  message
-     * @return {boolean}
-     */
-    toAll(channel: string, message: any): boolean {
-        this.server.io
-            .of(/.*/)
-            .to(channel)
-            .emit(message.event, channel, message.data);
-
-        return true;
-    }
-
-    /**
      * Register callbacks for on('connection') events.
      *
      * @return {void}
@@ -325,7 +230,7 @@ export class EchoServer {
         socket.on('subscribe', data => {
             let appId = this.getAppId(socket);
 
-            if (! appId || ! this._appManager.find(appId)) {
+            if (!appId || !this._appManager.find(appId)) {
                 return socket.disconnect();
             }
 

@@ -185,7 +185,7 @@ export class Server {
     getSignedToken(req: any): string|null {
         let app = this._appManager.find(this.getAppId(req));
 
-        if (! app) {
+        if (!app) {
             return;
         }
 

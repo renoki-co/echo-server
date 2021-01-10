@@ -70,15 +70,30 @@ export class Channel {
             //
         }
 
+        Log.info({
+            action: 'client event',
+            status: 'received',
+            data,
+        });
+
         if (data.event && data.channel) {
             if (
                 this.isClientEvent(data.event) &&
                 this.isPrivate(data.channel) &&
                 this.isInChannel(socket, data.channel)
             ) {
-                this.io.of(this.getNspForSocket(socket)).sockets.connected.get(socket.id)
-                    .broadcast.to(data.channel)
+                this.io.of(this.getNspForSocket(socket))
+                    .sockets
+                    .get(socket.id)
+                    .broadcast
+                    .to(data.channel)
                     .emit(data.event, data.channel, data.data);
+
+                Log.info({
+                    action: 'client event',
+                    status: 'success',
+                    data,
+                });
             }
         }
     }
@@ -157,7 +172,6 @@ export class Channel {
             }
 
             this.io.of(this.getNspForSocket(socket))
-                .sockets
                 .to(socket.id)
                 .emit('subscription_error', data.channel, error.status);
         });
@@ -216,7 +230,7 @@ export class Channel {
      * @return {boolean}
      */
     isInChannel(socket: any, channel: string): boolean {
-        return !!socket.rooms[channel];
+        return socket.adapter.rooms.has(channel);
     }
 
     /**
