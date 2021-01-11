@@ -177,7 +177,7 @@ export class EchoServer {
             this.privateChannel = new PrivateChannel(io, this.options);
             this.presenceChannel = new PresenceChannel(io, this.options);
 
-            this.httpApi = new HttpApi(this, this.server.express, this.options.cors);
+            this.httpApi = new HttpApi(this, io, this.server.express, this.options.cors);
 
             this.httpApi.initialize();
 

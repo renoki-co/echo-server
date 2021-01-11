@@ -8,10 +8,11 @@ export class HttpApi {
      * Create new instance of HTTP API.
      *
      * @param {any} server
+     * @param {any}  io
      * @param {any} express
      * @param {object} options
      */
-    constructor(protected server, protected express, protected options) {
+    constructor(protected server, protected io, protected express, protected options) {
         //
     }
 
@@ -64,7 +65,7 @@ export class HttpApi {
     getChannels(req: any, res: any): void {
         let appId = this.getAppId(req);
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
-        let rooms = this.server.io.of(`/${appId}`).adapter.rooms;
+        let rooms = this.io.of(`/${appId}`).adapter.rooms;
         let channels = {};
 
         rooms.forEach((sockets, channelName) => {
@@ -95,7 +96,7 @@ export class HttpApi {
     getChannel(req: any, res: any): void {
         let appId = this.getAppId(req);
         let channelName = req.params.channelName;
-        let room = this.server.io.of(`/${appId}`).adapter.rooms.get(channelName);
+        let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
         let channel = this.server.getChannelInstance(channelName);
 
@@ -105,7 +106,9 @@ export class HttpApi {
         };
 
         if (channel instanceof PresenceChannel) {
-            channel.getMembers(channelName).then(members => {
+            channel.getMembers(`/${appId}`, channelName).then(members => {
+                members = members || [];
+
                 res.json({
                     ...result,
                     ...{
@@ -126,6 +129,7 @@ export class HttpApi {
      * @return {boolean}
      */
     getChannelUsers(req: any, res: any): boolean {
+        let appId = this.getAppId(req);
         let channelName = req.params.channelName;
         let channel = this.server.getChannelInstance(channelName);
 
@@ -137,9 +141,11 @@ export class HttpApi {
             );
         }
 
-        channel.getMembers(channelName).then(members => {
+        channel.getMembers(`/${appId}`, channelName).then(members => {
+            members = members || [];
+
             res.json({
-                users: [...members.reduce((map, member) => map.set(member), new Map)][0],
+                users: [...members.reduce((map, member) => map.set(member), new Map)][0].filter(user => !!user),
             });
         }, error => Log.error(error));
     }
@@ -164,7 +170,7 @@ export class HttpApi {
         let channels = req.body.channels || [req.body.channel];
 
         channels.forEach(channel => {
-            this.server.io.of(`/${appId}`)
+            this.io.of(`/${appId}`)
                 .to(channel)
                 .emit(req.body.name, channel, req.body.data);
         });

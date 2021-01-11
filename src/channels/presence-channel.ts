@@ -72,7 +72,7 @@ export class PresenceChannel extends PrivateChannel {
                 socket.join(data.channel);
 
                 this.isMember(data.channel, member, socket).then(isMember => {
-                    this.getMembers(socket, data.channel).then(members => {
+                    this.getMembers(this.getNspForSocket(socket), data.channel).then(members => {
                         members = members || [];
                         member.socketId = socket.id;
 
@@ -118,7 +118,7 @@ export class PresenceChannel extends PrivateChannel {
      * @return {void}
      */
     leave(socket: any, channel: string): void {
-        this.getMembers(socket, channel).then(members => {
+        this.getMembers(this.getNspForSocket(socket), channel).then(members => {
             members = members || [];
             let currentMember = members.find(member => member.socketId === socket.id);
             let otherMembers = members.filter(member => member.socketId !== currentMember.socketId);
@@ -180,12 +180,12 @@ export class PresenceChannel extends PrivateChannel {
     /**
      * Get the members of a presence channel.
      *
-     * @param  {any}  socket
+     * @param  {string}  namespace
      * @param  {string}  channel
      * @return {Promise<any>}
      */
-    getMembers(socket: any, channel: string): Promise<any> {
-        return this.db.get(`${this.getNspForSocket(socket)}:${channel}:members`);
+    getMembers(namespace: any, channel: string): Promise<any> {
+        return this.db.get(`${namespace}:${channel}:members`);
     }
 
     /**
@@ -198,7 +198,7 @@ export class PresenceChannel extends PrivateChannel {
      */
     isMember(channel: string, member: any, socket: any): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            this.getMembers(socket, channel).then(members => {
+            this.getMembers(this.getNspForSocket(socket), channel).then(members => {
                 this.removeInactive(channel, members, socket).then(members => {
                     let search = members.filter(m => m.user_id === member.user_id);
 
