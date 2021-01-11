@@ -20,6 +20,7 @@ export class Cli {
      */
     envVariables: any = {
         APPS_MANAGER_DRIVER: 'appManager.driver',
+        APPS_LIST: 'appManager.array.apps',
         AUTH_HOST: 'auth.host',
         AUTH_ENDPOINT: 'auth.endpoint',
         DATABASE_DRIVER: 'database.driver',

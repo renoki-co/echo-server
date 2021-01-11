@@ -69,7 +69,7 @@ When using .env, you shall prefix them with `ECHO_SERVER_`:
 ECHO_SERVER_DATABASE_DRIVER=redis
 ```
 
-### Available environment variables
+### Available Environment Variables
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
@@ -90,6 +90,71 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `SSL_KEY` | `ssl.keyPath` | `''` | - | The path for SSL key file. |
 | `SSL_CA` | `ssl.caPath` | `''` | - | The path for CA certificate file. |
 | `SSL_PASS` | `ssl.passphrase` | `''` | - | The passphrase for the SSL key file. |
+
+## Pusher Compatibility
+
+This server is 100% compatible with the Pusher API, meaning you can use the `pusher` broadcasting driver pointing to the server and expect for it to full work.
+
+However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver:
+
+```bash
+$ APPS_LIST='[{ id: "echo-app", key: "echo-app-key", "secret": "echo-app-secret" }]' echo-server start
+```
+
+You will need to add a new connection to the broadcasting list:
+
+```php
+'socketio' => [
+    'driver' => 'pusher',
+    'key' => env('SOCKETIO_APP_KEY'),
+    'secret' => env('SOCKETIO_APP_SECRET'),
+    'app_id' => env('SOCKETIO_APP_ID'),
+    'options' => [
+        'cluster' => env('SOCKETIO_APP_CLUSTER'),
+        'encrypted' => true,
+        'host' => env('SOCKETIO_HOST', '127.0.0.1'),
+        'port' => env('SOCKETIO_PORT', 6001),
+        'scheme' => 'http',
+        'curl_options' => [
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+        ],
+    ],
+],
+```
+
+```env
+BROADCAST_DRIVER=socketio
+
+SOCKETIO_HOST=127.0.0.1
+SOCKETIO_PORT=6001
+SOCKETIO_APP_ID=echo-app
+SOCKETIO_APP_KEY=echo-app-key
+SOCKETIO_APP_SECRET=echo-app-secret
+```
+
+Last, but not least, the Socket.IO client can be easily namespaced by using the `SOCKETIO_APP_KEY` value, so that it can listen to the `echo-app` namespace. If the namespace is not provided, you will likely see it not working because the defined clients list has only one app, with the ID `echo-app`, so this is the namespace it will broadcast to.
+
+```js
+window.io = require('socket.io-client');
+
+window.Echo = new Echo({
+    broadcaster: 'socket.io',
+    host: window.location.hostname + ':6001/echo-app', // "echo-app" should be replaced with the App ID
+    transports: ['websocket'],
+    query: {
+        appId: 'echo-app', // this is required; "echo-app" should be replaced with the App ID
+    },
+});
+```
+
+## Application Drivers
+
+Coming soon.
+
+## SSL Support
+
+Coming soon.
 
 ## Docker Images
 

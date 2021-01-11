@@ -36,7 +36,7 @@ export class PresenceChannel extends PrivateChannel {
                     return clients.has(member.socketId);
                 });
 
-                this.db.set(`${channel}:members`, members);
+                this.db.set(`${this.getNspForSocket(socket)}:${channel}:members`, members);
 
                 resolve(members);
             });
@@ -72,14 +72,14 @@ export class PresenceChannel extends PrivateChannel {
                 socket.join(data.channel);
 
                 this.isMember(data.channel, member, socket).then(isMember => {
-                    this.getMembers(data.channel).then(members => {
+                    this.getMembers(socket, data.channel).then(members => {
                         members = members || [];
                         member.socketId = socket.id;
 
                         if (!isMember) {
                             members.push(member);
 
-                            this.db.set(`${data.channel}:members`, members);
+                            this.db.set(`${this.getNspForSocket(socket)}:${data.channel}:members`, members);
 
                             members = [
                                 ...members.reduce((map, member) => map.set(member.user_id, member), new Map).values()
@@ -118,14 +118,14 @@ export class PresenceChannel extends PrivateChannel {
      * @return {void}
      */
     leave(socket: any, channel: string): void {
-        this.getMembers(channel).then(members => {
+        this.getMembers(socket, channel).then(members => {
             members = members || [];
             let currentMember = members.find(member => member.socketId === socket.id);
             let otherMembers = members.filter(member => member.socketId !== currentMember.socketId);
 
             delete currentMember.socketId;
 
-            this.db.set(`${channel}:members`, otherMembers);
+            this.db.set(`${this.getNspForSocket(socket)}:${channel}:members`, otherMembers);
             this.onLeave(socket, channel, currentMember);
         }, (error) => Log.error(error));
     }
@@ -180,11 +180,12 @@ export class PresenceChannel extends PrivateChannel {
     /**
      * Get the members of a presence channel.
      *
+     * @param  {any}  socket
      * @param  {string}  channel
      * @return {Promise<any>}
      */
-    getMembers(channel: string): Promise<any> {
-        return this.db.get(`${channel}:members`);
+    getMembers(socket: any, channel: string): Promise<any> {
+        return this.db.get(`${this.getNspForSocket(socket)}:${channel}:members`);
     }
 
     /**
@@ -197,7 +198,7 @@ export class PresenceChannel extends PrivateChannel {
      */
     isMember(channel: string, member: any, socket: any): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            this.getMembers(channel).then(members => {
+            this.getMembers(socket, channel).then(members => {
                 this.removeInactive(channel, members, socket).then(members => {
                     let search = members.filter(m => m.user_id === member.user_id);
 
