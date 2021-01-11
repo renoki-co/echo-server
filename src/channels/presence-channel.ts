@@ -13,7 +13,7 @@ export class PresenceChannel {
      * @param  {any}  io
      * @param  {any}  options
      */
-    constructor(private io, private options: any) {
+    constructor(protected io, protected options: any) {
         this.db = new Database(options);
     }
 

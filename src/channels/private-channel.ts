@@ -7,14 +7,14 @@ export class PrivateChannel {
     /**
      * Request client.
      */
-    private request: any;
+    protected request: any;
 
     /**
      * Create a new private channel instance.
      *
      * @param  {any}  options
      */
-    constructor(private options: any) {
+    constructor(protected options: any) {
         this.request = request;
     }
 

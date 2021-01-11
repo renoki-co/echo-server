@@ -11,7 +11,7 @@ export class HttpApi {
      * @param {any} express
      * @param {object} options
      */
-    constructor(private io, private channel, private express, private options) {
+    constructor(protected io, protected channel, protected express, protected options) {
         //
     }
 

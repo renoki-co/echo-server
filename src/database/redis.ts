@@ -6,7 +6,7 @@ export class RedisDatabase implements DatabaseDriver {
     /**
      * Redis client.
      */
-    private _redis: any;
+    protected _redis: any;
 
     /**
      *
@@ -14,14 +14,14 @@ export class RedisDatabase implements DatabaseDriver {
      *
      * @type {String}
      */
-    private _keyPrefix: string;
+    protected _keyPrefix: string;
 
     /**
      * Create a new cache instance.
      *
      * @param {any} options
      */
-    constructor(private options) {
+    constructor(protected options) {
         this._redis = new Redis(options.database.redis);
         this._keyPrefix = options.database.redis.keyPrefix || '';
     }

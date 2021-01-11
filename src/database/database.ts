@@ -9,14 +9,14 @@ export class Database implements DatabaseDriver {
     /**
      * Database driver.
      */
-    private driver: DatabaseDriver;
+    protected driver: DatabaseDriver;
 
     /**
      * Create a new database instance.
      *
      * @param {any} options
      */
-    constructor(private options: any) {
+    constructor(protected options: any) {
         if (options.database.driver === 'redis') {
             this.driver = new RedisDatabase(options);
         } else {

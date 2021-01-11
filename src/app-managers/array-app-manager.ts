@@ -7,7 +7,7 @@ export class ArrayAppManager implements AppManagerDriver {
      *
      * @param {any} options
      */
-    constructor(private options) {
+    constructor(protected options) {
         //
     }
 

@@ -86,21 +86,21 @@ export class EchoServer {
      *
      * @type {Server}
      */
-    private server: Server;
+    protected server: Server;
 
     /**
      * Channel instance.
      *
      * @type {Channel}
      */
-    private channel: Channel;
+    protected publicChannel: Channel;
 
     /**
      * The HTTP API instance.
      *
      * @type {HttpApi}
      */
-    private httpApi: HttpApi;
+    protected httpApi: HttpApi;
 
     /**
      * The app manager used for client authentication.

@@ -39,7 +39,7 @@ export class Server {
      *
      * @param {any} options
      */
-    constructor(private options) {
+    constructor(protected options) {
         this._appManager = new AppManager(options);
     }
 

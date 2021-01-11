@@ -10,14 +10,14 @@ export class AppManager implements AppManagerDriver {
     /**
      * App manager driver.
      */
-    private driver: AppManagerDriver;
+    protected driver: AppManagerDriver;
 
     /**
      * Create a new database instance.
      *
      * @param {any} options
      */
-    constructor(private options: any) {
+    constructor(protected options: any) {
         if (options.appManager.driver === 'array') {
             this.driver = new ArrayAppManager(options);
         } else {

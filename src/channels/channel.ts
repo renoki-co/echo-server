@@ -29,7 +29,7 @@ export class Channel {
      * @param {any} io
      * @param {any} options
      */
-    constructor(private io, private options) {
+    constructor(protected io, protected options) {
         this.private = new PrivateChannel(options);
         this.presence = new PresenceChannel(io, options);
 
