@@ -1,4 +1,5 @@
 import { Log } from './../log';
+import { PresenceChannel } from './../channels/presence-channel';
 
 const url = require('url');
 
@@ -6,12 +7,11 @@ export class HttpApi {
     /**
      * Create new instance of HTTP API.
      *
-     * @param {any} io
-     * @param {any} channel
+     * @param {any} server
      * @param {any} express
      * @param {object} options
      */
-    constructor(protected io, protected channel, protected express, protected options) {
+    constructor(protected server, protected express, protected options) {
         //
     }
 
@@ -64,7 +64,7 @@ export class HttpApi {
     getChannels(req: any, res: any): void {
         let appId = this.getAppId(req);
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
-        let rooms = this.io.of(`/${appId}`).adapter.rooms;
+        let rooms = this.server.io.of(`/${appId}`).adapter.rooms;
         let channels = {};
 
         rooms.forEach((sockets, channelName) => {
@@ -95,16 +95,17 @@ export class HttpApi {
     getChannel(req: any, res: any): void {
         let appId = this.getAppId(req);
         let channelName = req.params.channelName;
-        let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
+        let room = this.server.io.of(`/${appId}`).adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
+        let channel = this.server.getChannelInstance(channelName);
 
         let result = {
             subscription_count: subscriptionCount,
             occupied: !!subscriptionCount
         };
 
-        if (this.channel.isPresence(channelName)) {
-            this.channel.presence.getMembers(channelName).then(members => {
+        if (channel instanceof PresenceChannel) {
+            channel.getMembers(channelName).then(members => {
                 res.json({
                     ...result,
                     ...{
@@ -113,7 +114,7 @@ export class HttpApi {
                 });
             });
         } else {
-            res.json(result);
+            res.json({ result });
         }
     }
 
@@ -126,8 +127,9 @@ export class HttpApi {
      */
     getChannelUsers(req: any, res: any): boolean {
         let channelName = req.params.channelName;
+        let channel = this.server.getChannelInstance(channelName);
 
-        if (!this.channel.isPresence(channelName)) {
+        if (!(channel instanceof PresenceChannel)) {
             return this.badResponse(
                 req,
                 res,
@@ -135,7 +137,7 @@ export class HttpApi {
             );
         }
 
-        this.channel.presence.getMembers(channelName).then(members => {
+        channel.getMembers(channelName).then(members => {
             res.json({
                 users: [...members.reduce((map, member) => map.set(member), new Map)][0],
             });
@@ -162,7 +164,7 @@ export class HttpApi {
         let channels = req.body.channels || [req.body.channel];
 
         channels.forEach(channel => {
-            this.io.of(`/${appId}`)
+            this.server.io.of(`/${appId}`)
                 .to(channel)
                 .emit(req.body.name, channel, req.body.data);
         });

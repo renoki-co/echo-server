@@ -1,5 +1,5 @@
 import { AppManager } from './app-managers/app-manager';
-import { Channel } from './channels';
+import { Channel, PresenceChannel, PrivateChannel } from './channels';
 import { HttpApi } from './api';
 import { Log } from './log';
 import { Server } from './server';
@@ -89,11 +89,25 @@ export class EchoServer {
     protected server: Server;
 
     /**
-     * Channel instance.
+     * Public channel instance.
      *
      * @type {Channel}
      */
     protected publicChannel: Channel;
+
+    /**
+     * Private channel instance.
+     *
+     * @type {PrivateChannel}
+     */
+    protected privateChannel: PrivateChannel;
+
+    /**
+     * Presence channel instance.
+     *
+     * @type {PresenceChannel}
+     */
+    protected presenceChannel: PresenceChannel;
 
     /**
      * The HTTP API instance.
@@ -159,9 +173,11 @@ export class EchoServer {
      */
     initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.channel = new Channel(io, this.options);
+            this.publicChannel = new Channel(io, this.options);
+            this.privateChannel = new PrivateChannel(io, this.options);
+            this.presenceChannel = new PresenceChannel(io, this.options);
 
-            this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.cors);
+            this.httpApi = new HttpApi(this, this.server.express, this.options.cors);
 
             this.httpApi.initialize();
 
@@ -180,20 +196,6 @@ export class EchoServer {
         console.log('Stopping the server...');
 
         this.server.io.close();
-    }
-
-    /**
-     * Return a channel by its socket id.
-     *
-     * @param  {message}  socketId
-     * @return {any}
-     */
-    find(message: any): any {
-        return this.server.io
-            .of(/.*/) // should use message._socketio.nsp ?
-            .adapter
-            .rooms
-            .get(message.socket);
     }
 
     /**
@@ -234,7 +236,7 @@ export class EchoServer {
                 return socket.disconnect();
             }
 
-            this.channel.join(socket, data);
+            this.getChannelInstance(data.channel).join(socket, data);
         });
     }
 
@@ -246,7 +248,7 @@ export class EchoServer {
      */
     onUnsubscribe(socket: any): void {
         socket.on('unsubscribe', data => {
-            this.channel.leave(socket, data.channel, 'unsubscribed');
+            this.getChannelInstance(data.channel).leave(socket, data.channel, 'unsubscribed');
         });
     }
 
@@ -257,13 +259,13 @@ export class EchoServer {
      * @return {void}
      */
     onDisconnecting(socket: any): void {
-        socket.on('disconnecting', (reason) => {
+        socket.on('disconnecting', reason => {
             socket.rooms.forEach(room => {
                 // Each socket has a list of channels defined by us and his own channel
                 // that has the same name as their unique socket ID. We don't want it to
                 // be disconnected from that one and instead disconnect it from our defined channels.
                 if (room !== socket.id) {
-                    this.channel.leave(socket, room, reason);
+                    this.getChannelInstance(room).leave(socket, room, reason);
                 }
             });
         });
@@ -277,7 +279,23 @@ export class EchoServer {
      */
     onClientEvent(socket: any): void {
         socket.on('client event', data => {
-            this.channel.clientEvent(socket, data);
+            this.getChannelInstance(data.channel).onClientEvent(socket, data);
         });
+    }
+
+    /**
+     * Get the channel instance for a channel name.
+     *
+     * @param  {string}  channel
+     * @return {Channel|PrivateChannel|PresenceChannel}
+     */
+    getChannelInstance(channel): Channel|PrivateChannel|PresenceChannel {
+        if (Channel.isPresenceChannel(channel)) {
+            return this.presenceChannel;
+        } else if (Channel.isPrivateChannel(channel)) {
+            return this.privateChannel;
+        } else {
+            return this.publicChannel;
+        }
     }
 }

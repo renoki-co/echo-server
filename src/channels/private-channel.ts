@@ -1,21 +1,50 @@
+import { Channel } from './channel';
 import { Log } from './../log';
 
 const request = require('request');
 const url = require('url');
 
-export class PrivateChannel {
+export class PrivateChannel extends Channel {
     /**
      * Request client.
      */
     protected request: any;
 
     /**
-     * Create a new private channel instance.
+     * Create a new channel instance.
      *
-     * @param  {any}  options
+     * @param {any} io
+     * @param {any} options
      */
-    constructor(protected options: any) {
+    constructor(protected io, protected options) {
+        super(io, options);
+
         this.request = request;
+    }
+
+    /**
+     * Join a given channel.
+     *
+     * @param  {any}  socket
+     * @param  {any}  data
+     * @return {Promise<any>}
+     */
+    join(socket, data): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.authenticate(socket, data).then(res => {
+                super.join(socket, data).then(({ socket, data }) => resolve(res));
+            }, error => {
+                if (this.options.development) {
+                    Log.error(error.reason);
+                }
+
+                this.io.of(this.getNspForSocket(socket))
+                    .to(socket.id)
+                    .emit('subscription_error', data.channel, error.status);
+
+                reject(error);
+            });
+        });
     }
 
     /**
@@ -25,7 +54,7 @@ export class PrivateChannel {
      * @param  {any}  data
      * @return {Promise<any>}
      */
-    authenticate(socket: any, data: any): Promise<any> {
+    protected authenticate(socket: any, data: any): Promise<any> {
         let options = {
             url: this.authHost(socket) + this.options.auth.endpoint,
             form: { channel_name: data.channel },
@@ -36,8 +65,9 @@ export class PrivateChannel {
         if (this.options.development) {
             Log.info({
                 time: new Date().toISOString(),
-                url: options.url,
+                options,
                 action: 'auth',
+                status: 'preparing',
             });
         }
 
@@ -72,10 +102,6 @@ export class PrivateChannel {
             }
         }
 
-        if (this.options.development) {
-            Log.error(`[${new Date().toISOString()}] - Preparing authentication request to: ${authHostSelected}`);
-        }
-
         return authHostSelected;
     }
 
@@ -108,15 +134,28 @@ export class PrivateChannel {
             this.request.post(options, (error, response, body, next) => {
                 if (error) {
                     if (this.options.development) {
-                        Log.error(`[${new Date().toISOString()}] - Error authenticating ${socket.id} for ${options.form.channel_name}`);
-                        Log.error(error);
+                        Log.error({
+                            time: new Date().toISOString(),
+                            socketId: socket.id,
+                            options,
+                            action: 'auth',
+                            status: 'failed',
+                            error,
+                        });
                     }
 
                     reject({ reason: 'Error sending authentication request.', status: 0 });
                 } else if (response.statusCode !== 200) {
                     if (this.options.development) {
-                        Log.warning(`[${new Date().toISOString()}] - ${socket.id} could not be authenticated to ${options.form.channel_name}`);
-                        Log.error(response.body);
+                        Log.warning({
+                            time: new Date().toISOString(),
+                            socketId: socket.id,
+                            options,
+                            action: 'auth',
+                            status: 'non_200',
+                            body: response.body,
+                            error,
+                        });
                     }
 
                     reject({ reason: 'Client can not be authenticated, got HTTP status ' + response.statusCode, status: response.statusCode });
@@ -125,8 +164,9 @@ export class PrivateChannel {
                         Log.info({
                             time: new Date().toISOString(),
                             socketId: socket.id,
-                            action: 'auth_success',
-                            channel: options.form.channel_name,
+                            options,
+                            action: 'auth',
+                            status: 'success',
                         });
                     }
 
