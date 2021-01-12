@@ -23,16 +23,16 @@ export class Cli {
         APPS_LIST: 'appManager.array.apps',
         AUTH_HOST: 'auth.host',
         AUTH_ENDPOINT: 'auth.endpoint',
-        DATABASE_DRIVER: 'database.driver',
         CORS_ALLOWED_ORIGINS: 'cors.origin',
+        DATABASE_DRIVER: 'database.driver',
         DEBUG: 'development',
-        SOCKET_HOST: 'host',
-        SOCKET_PORT: 'port',
-        SOCKET_PROTOCOL: 'protocol',
         REDIS_HOST: 'database.redis.host',
         REDIS_PORT: 'database.redis.port',
         REDIS_PASSWORD: 'database.redis.password',
         REDIS_KEY_PREFIX: 'database.redis.keyPrefix',
+        SOCKET_HOST: 'host',
+        SOCKET_PORT: 'port',
+        SOCKET_PROTOCOL: 'protocol',
         SSL_CERT: 'ssl.certPath',
         SSL_KEY: 'ssl.keyPath',
         SSL_CA: 'ssl.caPath',
@@ -41,8 +41,10 @@ export class Cli {
 
     /**
      * Inject the .env vars into options if they exist.
+     *
+     * @return {void}
      */
-    overwriteOptionsFromEnv(): void {
+    protected overwriteOptionsFromEnv(): void {
         require('dotenv').config();
 
         for (let envVar in this.envVariables) {
@@ -71,6 +73,8 @@ export class Cli {
 
     /**
      * Start the Echo server.
+     *
+     * @return {void}
      */
     start(yargs: any): void {
         this.overwriteOptionsFromEnv();

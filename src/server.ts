@@ -1,4 +1,3 @@
-import { AppManager } from './app-managers/app-manager';
 import { Log } from './log';
 
 const bodyParser = require('body-parser');
@@ -6,11 +5,9 @@ const express = require('express');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-const Pusher = require('pusher');
 const Redis = require('ioredis');
 const io = require('socket.io');
 const redisAdapter = require('socket.io-redis');
-const pusherUtil = require('pusher/lib/util');
 
 export class Server {
     /**
@@ -28,19 +25,12 @@ export class Server {
     public io: any;
 
     /**
-     * The app manager used for client authentication.
-     *
-     * @type {AppManager}
-     */
-    protected _appManager;
-
-    /**
      * Create a new server instance.
      *
      * @param {any} options
      */
     constructor(protected options) {
-        this._appManager = new AppManager(options);
+        //
     }
 
     /**
@@ -66,7 +56,7 @@ export class Server {
      *
      * @return {Promise<any>}
      */
-    serverProtocol(): Promise<any> {
+    protected serverProtocol(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.options.protocol === 'https') {
                 this.configureSecurity().then(() => {
@@ -83,7 +73,7 @@ export class Server {
      *
      * @return {Promise<any>}
      */
-    configureSecurity(): Promise<any> {
+    protected configureSecurity(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this.options.ssl.certPath || !this.options.ssl.keyPath) {
                 reject('SSL paths are missing in server config.');
@@ -106,18 +96,11 @@ export class Server {
      * @param  {boolean}  secure
      * @return {any}
      */
-    buildServer(secure: boolean) {
+    protected buildServer(secure: boolean) {
         this.express = express();
 
-        this.express.use((req, res, next) => {
-            for (let header in this.options.headers) {
-                res.setHeader(header, this.options.headers[header]);
-            }
-
-            next();
-        });
-
-        this.express.use(bodyParser.json());
+        this.configureHeaders();
+        this.configureJsonBody();
 
         let httpServer = secure
             ? https.createServer(this.options, this.express)
@@ -140,7 +123,7 @@ export class Server {
      *
      * @return {void}
      */
-    configureAdapters(): void {
+    protected configureAdapters(): void {
         if (this.options.database.driver === 'redis') {
             let pubClient = new Redis(this.options.database.redis);
             let subClient = new Redis(this.options.database.redis);
@@ -154,12 +137,14 @@ export class Server {
     }
 
     /**
-     * Attach global protection to HTTP routes, to verify the API key.
+     * Configure the headers from the settings.
+     *
+     * @return {void}
      */
-    authorizeRequests(): void {
-        this.express.param('appId', (req, res, next) => {
-            if (!this.canAccess(req)) {
-                return this.unauthorizedResponse(req, res);
+    protected configureHeaders(): void {
+        this.express.use((req, res, next) => {
+            for (let header in this.options.headers) {
+                res.setHeader(header, this.options.headers[header]);
             }
 
             next();
@@ -167,53 +152,12 @@ export class Server {
     }
 
     /**
-     * Check is an incoming request can access the api.
+     * Configure the JSON body parser.
      *
-     * @param  {any}  req
-     * @return {boolean}
+     * @return {void}
      */
-    canAccess(req: any): boolean {
-        return this.getSignedToken(req) === req.query.auth_signature;
-    }
-
-    /**
-     * Get the signed token from the given request.
-     *
-     * @param  {any}  req
-     * @return string|null
-     */
-    getSignedToken(req: any): string|null {
-        let app = this._appManager.find(this.getAppId(req));
-
-        if (!app) {
-            return;
-        }
-
-        let key = req.query.auth_key;
-        let token = new Pusher.Token(key, app.secret);
-
-        const params = {
-            auth_key: app.key,
-            auth_timestamp: req.query.auth_timestamp,
-            auth_version: req.query.auth_version,
-            ...req.params,
-        };
-
-        delete params['auth_signature'];
-        delete params['body_md5']
-        delete params['appId'];
-        delete params['appKey'];
-        delete params['channelName'];
-
-        if (req.body) {
-            params['body_md5'] = pusherUtil.getMD5(JSON.stringify(req.body));
-        }
-
-        return token.sign([
-            req.method.toUpperCase(),
-            req.path,
-            pusherUtil.toOrderedArray(params).join('&'),
-        ].join("\n"));
+    protected configureJsonBody(): void {
+        this.express.use(bodyParser.json({ strict: false }));
     }
 
     /**
@@ -224,19 +168,5 @@ export class Server {
      */
     getAppId(req: any): string|null {
         return req.params.appId ? req.params.appId : null;
-    }
-
-    /**
-     * Handle unauthorized requests.
-     *
-     * @param  {any}  req
-     * @param  {any}  res
-     * @return {boolean}
-     */
-    unauthorizedResponse(req: any, res: any): boolean {
-        res.statusCode = 403;
-        res.json({ error: 'Unauthorized' });
-
-        return false;
     }
 }

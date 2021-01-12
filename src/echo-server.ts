@@ -4,8 +4,8 @@ import { HttpApi } from './api';
 import { Log } from './log';
 import { Server } from './server';
 
-const packageFile = require('../package.json');
 const { constants } = require('crypto');
+const packageFile = require('../package.json');
 
 /**
  * Echo server class.
@@ -177,7 +177,7 @@ export class EchoServer {
             this.privateChannel = new PrivateChannel(io, this.options);
             this.presenceChannel = new PresenceChannel(io, this.options);
 
-            this.httpApi = new HttpApi(this, io, this.server.express, this.options.cors);
+            this.httpApi = new HttpApi(this, io, this.server.express, this.options);
 
             this.httpApi.initialize();
 
@@ -204,7 +204,7 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {string|number|undefined}
      */
-    getAppId(socket: any): string|number|undefined {
+    protected getAppId(socket: any): string|number|undefined {
         return socket.handshake.query.appId;
     }
 
@@ -213,7 +213,7 @@ export class EchoServer {
      *
      * @return {void}
      */
-    registerConnectionCallbacks(): void {
+    protected registerConnectionCallbacks(): void {
         this.server.io.of(/.*/).on('connection', socket => {
             this.onSubscribe(socket);
             this.onUnsubscribe(socket);
@@ -228,7 +228,7 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onSubscribe(socket: any): void {
+    protected onSubscribe(socket: any): void {
         socket.on('subscribe', data => {
             let appId = this.getAppId(socket);
 
@@ -246,7 +246,7 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onUnsubscribe(socket: any): void {
+    protected onUnsubscribe(socket: any): void {
         socket.on('unsubscribe', data => {
             this.getChannelInstance(data.channel).leave(socket, data.channel, 'unsubscribed');
         });
@@ -258,7 +258,7 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onDisconnecting(socket: any): void {
+    protected onDisconnecting(socket: any): void {
         socket.on('disconnecting', reason => {
             socket.rooms.forEach(room => {
                 // Each socket has a list of channels defined by us and his own channel
@@ -277,7 +277,7 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onClientEvent(socket: any): void {
+    protected onClientEvent(socket: any): void {
         socket.on('client event', data => {
             this.getChannelInstance(data.channel).onClientEvent(socket, data);
         });

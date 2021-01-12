@@ -1,9 +1,19 @@
+import { AppManager } from './../app-managers/app-manager';
 import { Log } from './../log';
 import { PresenceChannel } from './../channels/presence-channel';
 
+const pusherUtil = require('pusher/lib/util');
+const Pusher = require('pusher');
 const url = require('url');
 
 export class HttpApi {
+    /**
+     * The app manager used for client authentication.
+     *
+     * @type {AppManager}
+     */
+    protected _appManager;
+
     /**
      * Create new instance of HTTP API.
      *
@@ -13,14 +23,15 @@ export class HttpApi {
      * @param {object} options
      */
     constructor(protected server, protected io, protected express, protected options) {
-        //
+        this._appManager = new AppManager(options);
     }
 
     /**
      * Initialize the HTTP API.
      */
     initialize(): void {
-        this.corsMiddleware();
+        this.registerCorsMiddleware();
+        this.configurePusherAuthentication();
 
         this.express.get('/', (req, res) => this.getRoot(req, res));
         this.express.get('/apps/:appId/channels', (req, res) => this.getChannels(req, res));
@@ -34,11 +45,26 @@ export class HttpApi {
      *
      * @return {void}
      */
-    corsMiddleware(): void {
+    protected registerCorsMiddleware(): void {
         this.express.use((req, res, next) => {
-            res.header('Access-Control-Allow-Origin', this.options.origin.join(', '));
-            res.header('Access-Control-Allow-Methods', this.options.methods.join(', '));
-            res.header('Access-Control-Allow-Headers', this.options.allowedHeaders.join(', '));
+            res.header('Access-Control-Allow-Origin', this.options.cors.origin.join(', '));
+            res.header('Access-Control-Allow-Methods', this.options.cors.methods.join(', '));
+            res.header('Access-Control-Allow-Headers', this.options.cors.allowedHeaders.join(', '));
+
+            next();
+        });
+    }
+
+    /**
+     * Attach global protection to HTTP routes, to verify the API key.
+     *
+     * @return {void}
+     */
+    protected configurePusherAuthentication(): void {
+        this.express.param('appId', (req, res, next) => {
+            if (!this.signatureIsValid(req)) {
+                return this.unauthorizedResponse(req, res);
+            }
 
             next();
         });
@@ -51,7 +77,7 @@ export class HttpApi {
      * @param  {any}  res
      * @return {void}
      */
-    getRoot(req: any, res: any): void {
+    protected getRoot(req: any, res: any): void {
         res.send('OK');
     }
 
@@ -62,7 +88,7 @@ export class HttpApi {
      * @param  {any}  res
      * @return {void}
      */
-    getChannels(req: any, res: any): void {
+    protected getChannels(req: any, res: any): void {
         let appId = this.getAppId(req);
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
         let rooms = this.io.of(`/${appId}`).adapter.rooms;
@@ -93,7 +119,7 @@ export class HttpApi {
      * @param  {any}  res
      * @return {void}
      */
-    getChannel(req: any, res: any): void {
+    protected getChannel(req: any, res: any): void {
         let appId = this.getAppId(req);
         let channelName = req.params.channelName;
         let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
@@ -128,7 +154,7 @@ export class HttpApi {
      * @param  {any}  res
      * @return {boolean}
      */
-    getChannelUsers(req: any, res: any): boolean {
+    protected getChannelUsers(req: any, res: any): boolean {
         let appId = this.getAppId(req);
         let channelName = req.params.channelName;
         let channel = this.server.getChannelInstance(channelName);
@@ -157,11 +183,11 @@ export class HttpApi {
      * @param  {any}  res
      * @return {boolean}
      */
-    broadcastEvent(req: any, res: any): boolean {
+    protected broadcastEvent(req: any, res: any): boolean {
         if (
-            (!!req.body.channels && !!req.body.channel) ||
-            !!req.body.name ||
-            !!req.body.data
+            (!req.body.channels && !req.body.channel) ||
+            !req.body.name ||
+            !req.body.data
         ) {
             return this.badResponse(req, res, 'Wrong format.');
         }
@@ -181,6 +207,67 @@ export class HttpApi {
     }
 
     /**
+     * Get the app ID from the URL.
+     *
+     * @param  {any}  req
+     * @return {string|null}
+     */
+    protected getAppId(req: any): string|null {
+        return req.params.appId ? req.params.appId : null;
+    }
+
+    /**
+     * Check is an incoming request can access the api.
+     *
+     * @param  {any}  req
+     * @return {boolean}
+     */
+    protected signatureIsValid(req: any): boolean {
+        return this.getSignedToken(req) === req.query.auth_signature;
+    }
+
+    /**
+     * Get the signed token from the given request.
+     *
+     * @param  {any}  req
+     * @return string|null
+     */
+    protected getSignedToken(req: any): string|null {
+        let app = this._appManager.find(this.getAppId(req));
+
+        if (!app) {
+            return;
+        }
+
+        let key = req.query.auth_key;
+        let token = new Pusher.Token(key, app.secret);
+
+        const params = {
+            auth_key: app.key,
+            auth_timestamp: req.query.auth_timestamp,
+            auth_version: req.query.auth_version,
+            ...req.query,
+            ...req.params,
+        };
+
+        delete params['auth_signature'];
+        delete params['body_md5']
+        delete params['appId'];
+        delete params['appKey'];
+        delete params['channelName'];
+
+        if (req.body && Object.keys(req.body).length > 0) {
+            params['body_md5'] = pusherUtil.getMD5(JSON.stringify(req.body));
+        }
+
+        return token.sign([
+            req.method.toUpperCase(),
+            req.path,
+            pusherUtil.toOrderedArray(params).join('&'),
+        ].join("\n"));
+    }
+
+    /**
      * Handle bad requests.
      *
      * @param  {any}  req
@@ -188,7 +275,7 @@ export class HttpApi {
      * @param  {string}  message
      * @return {boolean}
      */
-    badResponse(req: any, res: any, message: string): boolean {
+    protected badResponse(req: any, res: any, message: string): boolean {
         res.statusCode = 400;
         res.json({ error: message });
 
@@ -196,12 +283,29 @@ export class HttpApi {
     }
 
     /**
-     * Get the app ID from the URL.
+     * Handle unauthorized requests.
      *
      * @param  {any}  req
-     * @return {string|null}
+     * @param  {any}  res
+     * @return {boolean}
      */
-    getAppId(req: any): string|null {
-        return req.params.appId ? req.params.appId : null;
+    protected unauthorizedResponse(req: any, res: any): boolean {
+        if (this.options.development) {
+            Log.error({
+                time: new Date().toISOString(),
+                action: 'pusher_auth',
+                status: 'failed',
+                params: req.params,
+                query: req.query,
+                body: req.body,
+                signedToken: this.getSignedToken(req),
+                givenToken: req.query.auth_signature,
+            });
+        }
+
+        res.statusCode = 403;
+        res.json({ error: 'Unauthorized' });
+
+        return false;
     }
 }
