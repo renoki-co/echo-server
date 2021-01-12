@@ -5,6 +5,8 @@ const echo = require('./../../dist');
 export class Cli {
     /**
      * Default configuration options.
+     *
+     * @type {any}
      */
     options: any;
 
@@ -17,8 +19,13 @@ export class Cli {
 
     /**
      * Allowed environment variables.
+     *
+     * @type {any}
      */
     envVariables: any = {
+        APP_DEFAULT_ID: 'appManager.array.apps.0.id',
+        APP_DEFAULT_KEY: 'appManager.array.apps.0.key',
+        APP_DEFAULT_SECRET: 'appManager.array.apps.0.secret',
         APPS_MANAGER_DRIVER: 'appManager.driver',
         APPS_LIST: 'appManager.array.apps',
         AUTH_HOST: 'auth.host',

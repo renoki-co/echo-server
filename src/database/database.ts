@@ -8,6 +8,8 @@ import { RedisDatabase } from './redis';
 export class Database implements DatabaseDriver {
     /**
      * Database driver.
+     *
+     * @type {DatabaseDriver}
      */
     protected driver: DatabaseDriver;
 
@@ -39,6 +41,7 @@ export class Database implements DatabaseDriver {
      *
      * @param {string} key
      * @param {any} value
+     * @return {void}
      */
     set(key: string, value: any): void {
         this.driver.set(key, value);

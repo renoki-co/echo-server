@@ -129,8 +129,6 @@ export class PrivateChannel extends Channel {
         return new Promise<any>((resolve, reject) => {
             options.headers = this.prepareHeaders(socket, options);
 
-            let body;
-
             this.request.post(options, (error, response, body, next) => {
                 if (error) {
                     if (this.options.development) {

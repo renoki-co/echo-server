@@ -5,6 +5,8 @@ const Redis = require('ioredis');
 export class RedisDatabase implements DatabaseDriver {
     /**
      * Redis client.
+     *
+     * @type {any}
      */
     protected _redis: any;
 
@@ -12,7 +14,7 @@ export class RedisDatabase implements DatabaseDriver {
      *
      * KeyPrefix for used in the redis Connection
      *
-     * @type {String}
+     * @type {string}
      */
     protected _keyPrefix: string;
 
@@ -43,6 +45,7 @@ export class RedisDatabase implements DatabaseDriver {
      *
      * @param {string} key
      * @param {any} value
+     * @return {void}
      */
     set(key: string, value: any): void {
         this._redis.set(key, JSON.stringify(value));

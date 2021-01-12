@@ -159,14 +159,4 @@ export class Server {
     protected configureJsonBody(): void {
         this.express.use(bodyParser.json({ strict: false }));
     }
-
-    /**
-     * Get the app ID from the URL.
-     *
-     * @param  {any}  req
-     * @return {string|null}
-     */
-    getAppId(req: any): string|null {
-        return req.params.appId ? req.params.appId : null;
-    }
 }

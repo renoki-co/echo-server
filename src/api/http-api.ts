@@ -28,6 +28,8 @@ export class HttpApi {
 
     /**
      * Initialize the HTTP API.
+     *
+     * @return {void}
      */
     initialize(): void {
         this.registerCorsMiddleware();

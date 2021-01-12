@@ -73,6 +73,9 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
+| `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
 | `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
 | `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app", "key":"echo-app-key","secret":"echo-app-secret"}]'` | - | The list of apps to be used for authentication. |
 | `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
@@ -129,9 +132,16 @@ BROADCAST_DRIVER=socketio
 
 SOCKETIO_HOST=127.0.0.1
 SOCKETIO_PORT=6001
+
 SOCKETIO_APP_ID=echo-app
 SOCKETIO_APP_KEY=echo-app-key
 SOCKETIO_APP_SECRET=echo-app-secret
+
+# These are the default values to connect to. It's recommended to specify the server an `APPS_LIST`
+# or override these values using `APP_DEFAULT_*` keys.
+ECHO_SERVER_APP_DEFAULT_ID=echo-app
+ECHO_SERVER_DEFAULT_KEY=echo-app-key
+ECHO_SERVER_DEFAULT_SECRET=echo-app-secret
 ```
 
 Last, but not least, the Socket.IO client can be easily namespaced by using the `SOCKETIO_APP_KEY` value, so that it can listen to the `echo-app` namespace. If the namespace is not provided, you will likely see it not working because the defined clients list has only one app, with the ID `echo-app`, so this is the namespace it will broadcast to.

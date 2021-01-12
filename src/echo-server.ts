@@ -125,8 +125,6 @@ export class EchoServer {
 
     /**
      * Create a new Echo Server instance.
-     *
-     * @return {void}
      */
     constructor() {
         this._appManager = new AppManager(this.options);
