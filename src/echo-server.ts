@@ -21,14 +21,15 @@ export class EchoServer {
             driver: 'array',
             api: {
                 host: 'http://127.0.0.1',
-                endpoint: '/echo-server/app',
+                endpoint: '/echo-server/app/:appId',
+                token: 'echo-app-token',
             },
             array: {
                 apps: [
                     {
                         id: 'echo-app',
                         key: 'echo-app-key',
-                        secret: 'echo-app-secret',
+                        secret: 'echo-app-secret'
                     },
                 ],
             },
@@ -200,9 +201,9 @@ export class EchoServer {
      * Get the App ID from the socket connection.
      *
      * @param  {any}  socket
-     * @return {string|number|undefined}
+     * @return {string|undefined}
      */
-    protected getAppId(socket: any): string|number|undefined {
+    protected getAppId(socket: any): string|undefined {
         return socket.handshake.query.appId;
     }
 

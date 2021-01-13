@@ -14,12 +14,12 @@ export class ArrayAppManager implements AppManagerDriver {
     /**
      * Find an app by given ID.
      *
-     * @param  {string|number}  id
+     * @param  {string}  id
      * @param  {any}  socket
      * @param  {any}  data
      * @return {Promise<App|null>}
      */
-    find(id: string|number, socket: any, data: any): Promise<App|null> {
+    find(id: string, socket: any, data: any): Promise<App|null> {
         return new Promise((resolve, reject) => {
             let app = this.options.appManager.array.apps.find(app => app.id === id);
 
