@@ -1,11 +1,11 @@
+import { AppManager } from './app-managers/app-manager';
+import { Channel, PresenceChannel, PrivateChannel } from './channels';
 import { HttpApi } from './api';
-import { Channel } from './channels';
 import { Log } from './log';
 import { Server } from './server';
-import { HttpSubscriber, RedisSubscriber, Subscriber } from './subscribers';
 
-const packageFile = require('../package.json');
 const { constants } = require('crypto');
+const packageFile = require('../package.json');
 
 /**
  * Echo server class.
@@ -17,6 +17,22 @@ export class EchoServer {
      * @type {any}
      */
     public options: any = {
+        appManager: {
+            driver: 'array',
+            api: {
+                host: 'http://127.0.0.1',
+                endpoint: '/echo-server/app',
+            },
+            array: {
+                apps: [
+                    {
+                        id: 'echo-app',
+                        key: 'echo-app-key',
+                        secret: 'echo-app-secret',
+                    },
+                ],
+            },
+        },
         auth: {
             host: 'http://127.0.0.1',
             endpoint: '/broadcasting/auth',
@@ -43,7 +59,6 @@ export class EchoServer {
                 host: '127.0.0.1',
                 port: 6379,
                 password: null,
-                publishPresence: true,
                 keyPrefix: '',
             },
         },
@@ -64,10 +79,6 @@ export class EchoServer {
             caPath: '',
             passphrase: '',
         },
-        subscribers: {
-            http: true,
-            redis: true,
-        },
     };
 
     /**
@@ -75,36 +86,48 @@ export class EchoServer {
      *
      * @type {Server}
      */
-    private server: Server;
+    protected server: Server;
 
     /**
-     * Channel instance.
+     * Public channel instance.
      *
      * @type {Channel}
      */
-    private channel: Channel;
+    protected publicChannel: Channel;
 
     /**
-     * The subscribers list.
+     * Private channel instance.
      *
-     * @type {Subscriber[]}
+     * @type {PrivateChannel}
      */
-    private subscribers: Subscriber[];
+    protected privateChannel: PrivateChannel;
+
+    /**
+     * Presence channel instance.
+     *
+     * @type {PresenceChannel}
+     */
+    protected presenceChannel: PresenceChannel;
 
     /**
      * The HTTP API instance.
      *
      * @type {HttpApi}
      */
-    private httpApi: HttpApi;
+    protected httpApi: HttpApi;
+
+    /**
+     * The app manager used for client authentication.
+     *
+     * @type {AppManager}
+     */
+    protected _appManager;
 
     /**
      * Create a new Echo Server instance.
-     *
-     * @return {void}
      */
     constructor() {
-        //
+        this._appManager = new AppManager(this.options);
     }
 
     /**
@@ -113,7 +136,7 @@ export class EchoServer {
      * @param  {any}  options
      * @return {Promise<any>}
      */
-    run(options: any): Promise<any> {
+    run(options: any = {}): Promise<any> {
         return new Promise((resolve, reject) => {
             this.options = Object.assign(this.options, options);
             this.server = new Server(this.options);
@@ -131,7 +154,7 @@ export class EchoServer {
                     Log.info('\nServer ready!\n');
 
                     if (this.options.development) {
-                        Log.info({ options: this.options });
+                        Log.info({ options: JSON.stringify(this.options) });
                     }
 
                     resolve(this);
@@ -148,113 +171,39 @@ export class EchoServer {
      */
     initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.channel = new Channel(io, this.options);
-            this.subscribers = [];
+            this.publicChannel = new Channel(io, this.options);
+            this.privateChannel = new PrivateChannel(io, this.options);
+            this.presenceChannel = new PresenceChannel(io, this.options);
 
-            if (this.options.subscribers.http) {
-                this.subscribers.push(new HttpSubscriber(this.server.express, this.options));
-            }
-
-            if (this.options.subscribers.redis) {
-                this.subscribers.push(new RedisSubscriber(this.options));
-            }
-
-            this.httpApi = new HttpApi(io, this.channel, this.server.express, this.options.cors);
+            this.httpApi = new HttpApi(this, io, this.server.express, this.options);
 
             this.httpApi.initialize();
 
             this.registerConnectionCallbacks();
 
-            this.listen().then(() => resolve(), err => Log.error(err));
+            resolve();
         });
     }
 
     /**
      * Stop the echo server.
      *
-     * @return {Promise<any>}
+     * @return {void}
      */
-    stop(): Promise<any> {
+    stop(): void {
         console.log('Stopping the server...');
 
-        let promises = [];
-
-        this.subscribers.forEach(subscriber => {
-            promises.push(subscriber.unsubscribe());
-        });
-
-        promises.push(this.server.io.close());
-
-        return Promise.all(promises).then(() => {
-            this.subscribers = [];
-            console.log('The Echo server has been stopped.');
-        });
+        this.server.io.close();
     }
 
     /**
-     * Listen for incoming event from subscibers.
-     *
-     * @return {Promise<void>}
-     */
-    listen(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            let subscribePromises = this.subscribers.map(subscriber => {
-                return subscriber.subscribe((channel, message) => {
-                    return this.broadcast(channel, message);
-                });
-            });
-
-            Promise.all(subscribePromises).then(() => resolve());
-        });
-    }
-
-    /**
-     * Return a channel by its socket id.
-     *
-     * @param  {string}  socketId
-     * @return {any}
-     */
-    find(socketId: string): any {
-        return this.server.io.sockets.sockets.get(socketId);
-    }
-
-    /**
-     * Broadcast events to channels from subscribers.
-     *
-     * @param  {string}  channel
-     * @param  {any}  message
-     * @return {boolean}
-     */
-    broadcast(channel: string, message: any): boolean {
-        return (message.socket && this.find(message.socket))
-            ? this.toOthers(this.find(message.socket), channel, message)
-            : this.toAll(channel, message);
-    }
-
-    /**
-     * Broadcast to others on channel.
+     * Get the App ID from the socket connection.
      *
      * @param  {any}  socket
-     * @param  {string}  channel
-     * @param  {any}  message
-     * @return {boolean}
+     * @return {string|number|undefined}
      */
-    toOthers(socket: any, channel: string, message: any): boolean {
-        socket.broadcast.to(channel).emit(message.event, channel, message.data);
-
-        return true
-    }
-
-    /**
-     * Broadcast to all members on channel.
-     *
-     * @param  {string}  channel
-     * @param  {any}  message
-     */
-    toAll(channel: string, message: any): boolean {
-        this.server.io.to(channel).emit(message.event, channel, message.data);
-
-        return true;
+    protected getAppId(socket: any): string|number|undefined {
+        return socket.handshake.query.appId;
     }
 
     /**
@@ -262,12 +211,18 @@ export class EchoServer {
      *
      * @return {void}
      */
-    registerConnectionCallbacks(): void {
-        this.server.io.on('connection', socket => {
-            this.onSubscribe(socket);
-            this.onUnsubscribe(socket);
-            this.onDisconnecting(socket);
-            this.onClientEvent(socket);
+    protected registerConnectionCallbacks(): void {
+        this.server.io.of(/.*/).on('connection', socket => {
+            let appId = this.getAppId(socket);
+
+            this._appManager.find(appId).then(app => {
+                socket.echo = { app };
+
+                this.onSubscribe(socket);
+                this.onUnsubscribe(socket);
+                this.onDisconnecting(socket);
+                this.onClientEvent(socket);
+            }, error => socket.disconnect());
         });
     }
 
@@ -277,9 +232,9 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onSubscribe(socket: any): void {
+    protected onSubscribe(socket: any): void {
         socket.on('subscribe', data => {
-            this.channel.join(socket, data);
+            this.getChannelInstance(data.channel).join(socket, data);
         });
     }
 
@@ -289,9 +244,9 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onUnsubscribe(socket: any): void {
+    protected onUnsubscribe(socket: any): void {
         socket.on('unsubscribe', data => {
-            this.channel.leave(socket, data.channel, 'unsubscribed');
+            this.getChannelInstance(data.channel).leave(socket, data.channel, 'unsubscribed');
         });
     }
 
@@ -301,14 +256,14 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onDisconnecting(socket: any): void {
-        socket.on('disconnecting', (reason) => {
+    protected onDisconnecting(socket: any): void {
+        socket.on('disconnecting', reason => {
             socket.rooms.forEach(room => {
                 // Each socket has a list of channels defined by us and his own channel
                 // that has the same name as their unique socket ID. We don't want it to
                 // be disconnected from that one and instead disconnect it from our defined channels.
                 if (room !== socket.id) {
-                    this.channel.leave(socket, room, reason);
+                    this.getChannelInstance(room).leave(socket, room, reason);
                 }
             });
         });
@@ -320,9 +275,25 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {void}
      */
-    onClientEvent(socket: any): void {
+    protected onClientEvent(socket: any): void {
         socket.on('client event', data => {
-            this.channel.clientEvent(socket, data);
+            this.getChannelInstance(data.channel).onClientEvent(socket, data);
         });
+    }
+
+    /**
+     * Get the channel instance for a channel name.
+     *
+     * @param  {string}  channel
+     * @return {Channel|PrivateChannel|PresenceChannel}
+     */
+    getChannelInstance(channel): Channel|PrivateChannel|PresenceChannel {
+        if (Channel.isPresenceChannel(channel)) {
+            return this.presenceChannel;
+        } else if (Channel.isPrivateChannel(channel)) {
+            return this.privateChannel;
+        } else {
+            return this.publicChannel;
+        }
     }
 }

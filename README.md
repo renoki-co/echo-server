@@ -69,26 +69,129 @@ When using .env, you shall prefix them with `ECHO_SERVER_`:
 ECHO_SERVER_DATABASE_DRIVER=redis
 ```
 
-### Available environment variables
+### Available Environment Variables
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
+| `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
+| `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
+| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app", "key":"echo-app-key","secret":"echo-app-secret"}]'` | - | The list of apps to be used for authentication. |
 | `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
 | `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
-| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http:/127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
+| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
-| `SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
-| `SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
-| `SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
 | `REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
 | `REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |
 | `REDIS_KEY_PREFIX` | `database.redis.keyPrefix` | `echo-server` | - | The key prefix for Redis. Only for `redis` driver. |
+| `SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
+| `SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
+| `SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
 | `SSL_CERT` | `ssl.certPath` | `''` | - | The path for SSL certificate file. |
 | `SSL_KEY` | `ssl.keyPath` | `''` | - | The path for SSL key file. |
 | `SSL_CA` | `ssl.caPath` | `''` | - | The path for CA certificate file. |
 | `SSL_PASS` | `ssl.passphrase` | `''` | - | The passphrase for the SSL key file. |
+
+## Pusher Compatibility
+
+This server is 100% compatible with the Pusher API, meaning you can use the `pusher` broadcasting driver pointing to the server and expect for it to full work.
+
+However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver:
+
+```bash
+$ APPS_LIST='[{ id: "echo-app", key: "echo-app-key", "secret": "echo-app-secret" }]' echo-server start
+```
+
+You will need to add a new connection to the broadcasting list:
+
+```php
+'socketio' => [
+    'driver' => 'pusher',
+    'key' => env('SOCKETIO_APP_KEY'),
+    'secret' => env('SOCKETIO_APP_SECRET'),
+    'app_id' => env('SOCKETIO_APP_ID'),
+    'options' => [
+        'cluster' => env('SOCKETIO_APP_CLUSTER'),
+        'encrypted' => true,
+        'host' => env('SOCKETIO_HOST', '127.0.0.1'),
+        'port' => env('SOCKETIO_PORT', 6001),
+        'scheme' => 'http',
+        'curl_options' => [
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+        ],
+    ],
+],
+```
+
+```env
+BROADCAST_DRIVER=socketio
+
+SOCKETIO_HOST=127.0.0.1
+SOCKETIO_PORT=6001
+
+SOCKETIO_APP_ID=echo-app
+SOCKETIO_APP_KEY=echo-app-key
+SOCKETIO_APP_SECRET=echo-app-secret
+
+# These are the default values to connect to. It's recommended to specify the server an `APPS_LIST`
+# or override these values using `APP_DEFAULT_*` keys.
+ECHO_SERVER_APP_DEFAULT_ID=echo-app
+ECHO_SERVER_DEFAULT_KEY=echo-app-key
+ECHO_SERVER_DEFAULT_SECRET=echo-app-secret
+```
+
+Last, but not least, the Socket.IO client can be easily namespaced by using the `SOCKETIO_APP_KEY` value, so that it can listen to the `echo-app` namespace. If the namespace is not provided, you will likely see it not working because the defined clients list has only one app, with the ID `echo-app`, so this is the namespace it will broadcast to.
+
+```js
+window.io = require('socket.io-client');
+
+window.Echo = new Echo({
+    broadcaster: 'socket.io',
+    host: window.location.hostname + ':6001/echo-app', // "echo-app" should be replaced with the App ID
+    transports: ['websocket'],
+    query: {
+        appId: 'echo-app', // this is required; "echo-app" should be replaced with the App ID
+    },
+});
+```
+
+## Application Drivers
+
+Coming soon.
+
+## SSL Support
+
+Coming soon.
+
+## Deploying with PM2
+
+The package supports pm2 out-of-the-box, so you can easily use it to scale processes:
+
+```bash
+$ pm2 start bin/pm2.js --name=echo-server -i max
+```
+
+You can also easily scale the processes in and out:
+
+```bash
+$ pm2 scale echo-server 5
+```
+
+```
+┌─────┬────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id  │ name           │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├─────┼────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0   │ echo-server    │ default     │ 1.1.0   │ cluster │ 10132    │ 3m     │ 0    │ online    │ 0%       │ 49.4mb   │ vagrant  │ disabled │
+│ 1   │ echo-server    │ default     │ 1.1.0   │ cluster │ 10139    │ 3m     │ 0    │ online    │ 0%       │ 50.0mb   │ vagrant  │ disabled │
+│ 2   │ echo-server    │ default     │ 1.1.0   │ cluster │ 10248    │ 2m     │ 0    │ online    │ 0%       │ 49.4mb   │ vagrant  │ disabled │
+│ 3   │ echo-server    │ default     │ 1.1.0   │ cluster │ 10828    │ 28s    │ 0    │ online    │ 0%       │ 48.4mb   │ vagrant  │ disabled │
+│ 4   │ echo-server    │ default     │ 1.1.0   │ cluster │ 10835    │ 28s    │ 0    │ online    │ 0%       │ 48.1mb   │ vagrant  │ disabled │
+└─────┴────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+```
 
 ## Docker Images
 

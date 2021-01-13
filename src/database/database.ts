@@ -8,15 +8,17 @@ import { RedisDatabase } from './redis';
 export class Database implements DatabaseDriver {
     /**
      * Database driver.
+     *
+     * @type {DatabaseDriver}
      */
-    private driver: DatabaseDriver;
+    protected driver: DatabaseDriver;
 
     /**
      * Create a new database instance.
      *
      * @param {any} options
      */
-    constructor(private options: any) {
+    constructor(protected options: any) {
         if (options.database.driver === 'redis') {
             this.driver = new RedisDatabase(options);
         } else {
@@ -39,6 +41,7 @@ export class Database implements DatabaseDriver {
      *
      * @param {string} key
      * @param {any} value
+     * @return {void}
      */
     set(key: string, value: any): void {
         this.driver.set(key, value);

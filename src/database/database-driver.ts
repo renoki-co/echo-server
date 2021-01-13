@@ -15,6 +15,7 @@ export interface DatabaseDriver {
      *
      * @param {string} key
      * @param {any} value
+     * @return {void}
      */
     set(key: string, value: any): void;
 }

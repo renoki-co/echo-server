@@ -5,23 +5,25 @@ const Redis = require('ioredis');
 export class RedisDatabase implements DatabaseDriver {
     /**
      * Redis client.
+     *
+     * @type {any}
      */
-    private _redis: any;
+    protected _redis: any;
 
     /**
      *
      * KeyPrefix for used in the redis Connection
      *
-     * @type {String}
+     * @type {string}
      */
-    private _keyPrefix: string;
+    protected _keyPrefix: string;
 
     /**
      * Create a new cache instance.
      *
      * @param {any} options
      */
-    constructor(private options) {
+    constructor(protected options) {
         this._redis = new Redis(options.database.redis);
         this._keyPrefix = options.database.redis.keyPrefix || '';
     }
@@ -43,17 +45,9 @@ export class RedisDatabase implements DatabaseDriver {
      *
      * @param {string} key
      * @param {any} value
+     * @return {void}
      */
     set(key: string, value: any): void {
         this._redis.set(key, JSON.stringify(value));
-
-        if (this.options.database.redis.publishPresence === true && /^presence-.*:members$/.test(key)) {
-            this._redis.publish(`${this._keyPrefix}PresenceChannelUpdated`, JSON.stringify({
-                'event': {
-                    'channel': key,
-                    'members': value,
-                },
-            }));
-        }
     }
 }

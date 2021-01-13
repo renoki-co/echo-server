@@ -1,5 +1,6 @@
 import { Log } from './log';
 
+const bodyParser = require('body-parser');
 const express = require('express');
 const fs = require('fs');
 const http = require('http');
@@ -7,7 +8,6 @@ const https = require('https');
 const Redis = require('ioredis');
 const io = require('socket.io');
 const redisAdapter = require('socket.io-redis');
-const url = require('url');
 
 export class Server {
     /**
@@ -29,7 +29,7 @@ export class Server {
      *
      * @param {any} options
      */
-    constructor(private options) {
+    constructor(protected options) {
         //
     }
 
@@ -56,7 +56,7 @@ export class Server {
      *
      * @return {Promise<any>}
      */
-    serverProtocol(): Promise<any> {
+    protected serverProtocol(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.options.protocol === 'https') {
                 this.configureSecurity().then(() => {
@@ -73,7 +73,7 @@ export class Server {
      *
      * @return {Promise<any>}
      */
-    configureSecurity(): Promise<any> {
+    protected configureSecurity(): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this.options.ssl.certPath || !this.options.ssl.keyPath) {
                 reject('SSL paths are missing in server config.');
@@ -96,16 +96,11 @@ export class Server {
      * @param  {boolean}  secure
      * @return {any}
      */
-    buildServer(secure: boolean) {
+    protected buildServer(secure: boolean) {
         this.express = express();
 
-        this.express.use((req, res, next) => {
-            for (let header in this.options.headers) {
-                res.setHeader(header, this.options.headers[header]);
-            }
-
-            next();
-        });
+        this.configureHeaders();
+        this.configureJsonBody();
 
         let httpServer = secure
             ? https.createServer(this.options, this.express)
@@ -128,7 +123,7 @@ export class Server {
      *
      * @return {void}
      */
-    configureAdapters(): void {
+    protected configureAdapters(): void {
         if (this.options.database.driver === 'redis') {
             let pubClient = new Redis(this.options.database.redis);
             let subClient = new Redis(this.options.database.redis);
@@ -139,5 +134,29 @@ export class Server {
                 subClient: subClient,
             }));
         }
+    }
+
+    /**
+     * Configure the headers from the settings.
+     *
+     * @return {void}
+     */
+    protected configureHeaders(): void {
+        this.express.use((req, res, next) => {
+            for (let header in this.options.headers) {
+                res.setHeader(header, this.options.headers[header]);
+            }
+
+            next();
+        });
+    }
+
+    /**
+     * Configure the JSON body parser.
+     *
+     * @return {void}
+     */
+    protected configureJsonBody(): void {
+        this.express.use(bodyParser.json({ strict: false }));
     }
 }
