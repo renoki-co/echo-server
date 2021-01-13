@@ -36,7 +36,7 @@ export class Cli {
         REDIS_HOST: 'database.redis.host',
         REDIS_PORT: 'database.redis.port',
         REDIS_PASSWORD: 'database.redis.password',
-        REDIS_KEY_PREFIX: 'database.redis.keyPrefix',
+        REDIS_PREFIX: 'database.redis.keyPrefix',
         SOCKET_HOST: 'host',
         SOCKET_PORT: 'port',
         SOCKET_PROTOCOL: 'protocol',
