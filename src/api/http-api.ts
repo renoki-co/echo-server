@@ -64,11 +64,13 @@ export class HttpApi {
      */
     protected configurePusherAuthentication(): void {
         this.express.param('appId', (req, res, next) => {
-            if (!this.signatureIsValid(req)) {
-                return this.unauthorizedResponse(req, res);
-            }
-
-            next();
+            this.signatureIsValid(req).then(isValid => {
+                if (!isValid) {
+                    this.unauthorizedResponse(req, res);
+                } else {
+                    next()
+                }
+            });
         });
     }
 
@@ -222,51 +224,59 @@ export class HttpApi {
      * Check is an incoming request can access the api.
      *
      * @param  {any}  req
-     * @return {boolean}
+     * @return {Promise<boolean>}
      */
-    protected signatureIsValid(req: any): boolean {
-        return this.getSignedToken(req) === req.query.auth_signature;
+    protected signatureIsValid(req: any): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            this.getSignedToken(req).then(token => {
+                resolve(token === req.query.auth_signature);
+            });
+        });
     }
 
     /**
      * Get the signed token from the given request.
      *
      * @param  {any}  req
-     * @return string|null
+     * @return {Promise<string>}
      */
-    protected getSignedToken(req: any): string|null {
-        let app = this._appManager.find(this.getAppId(req));
+    protected getSignedToken(req: any): Promise<string> {
+        return new Promise((resolve, reject) => {
+            this._appManager.find(this.getAppId(req)).then(app => {
+                if (!app) {
+                    reject({ reason: 'App not found when signing token.' });
+                }
 
-        if (!app) {
-            return;
-        }
+                let key = req.query.auth_key;
+                let token = new Pusher.Token(key, app.secret);
 
-        let key = req.query.auth_key;
-        let token = new Pusher.Token(key, app.secret);
+                const params = {
+                    auth_key: app.key,
+                    auth_timestamp: req.query.auth_timestamp,
+                    auth_version: req.query.auth_version,
+                    ...req.query,
+                    ...req.params,
+                };
 
-        const params = {
-            auth_key: app.key,
-            auth_timestamp: req.query.auth_timestamp,
-            auth_version: req.query.auth_version,
-            ...req.query,
-            ...req.params,
-        };
+                delete params['auth_signature'];
+                delete params['body_md5']
+                delete params['appId'];
+                delete params['appKey'];
+                delete params['channelName'];
 
-        delete params['auth_signature'];
-        delete params['body_md5']
-        delete params['appId'];
-        delete params['appKey'];
-        delete params['channelName'];
+                if (req.body && Object.keys(req.body).length > 0) {
+                    params['body_md5'] = pusherUtil.getMD5(JSON.stringify(req.body));
+                }
 
-        if (req.body && Object.keys(req.body).length > 0) {
-            params['body_md5'] = pusherUtil.getMD5(JSON.stringify(req.body));
-        }
-
-        return token.sign([
-            req.method.toUpperCase(),
-            req.path,
-            pusherUtil.toOrderedArray(params).join('&'),
-        ].join("\n"));
+                resolve(
+                    token.sign([
+                        req.method.toUpperCase(),
+                        req.path,
+                        pusherUtil.toOrderedArray(params).join('&'),
+                    ].join("\n"))
+                );
+            });
+        });
     }
 
     /**

@@ -154,7 +154,7 @@ export class EchoServer {
                     Log.info('\nServer ready!\n');
 
                     if (this.options.development) {
-                        Log.info({ options: this.options });
+                        Log.info({ options: JSON.stringify(this.options) });
                     }
 
                     resolve(this);
@@ -213,10 +213,16 @@ export class EchoServer {
      */
     protected registerConnectionCallbacks(): void {
         this.server.io.of(/.*/).on('connection', socket => {
-            this.onSubscribe(socket);
-            this.onUnsubscribe(socket);
-            this.onDisconnecting(socket);
-            this.onClientEvent(socket);
+            let appId = this.getAppId(socket);
+
+            this._appManager.find(appId).then(app => {
+                socket.echo = { app };
+
+                this.onSubscribe(socket);
+                this.onUnsubscribe(socket);
+                this.onDisconnecting(socket);
+                this.onClientEvent(socket);
+            }, error => socket.disconnect());
         });
     }
 
@@ -228,12 +234,6 @@ export class EchoServer {
      */
     protected onSubscribe(socket: any): void {
         socket.on('subscribe', data => {
-            let appId = this.getAppId(socket);
-
-            if (!appId || !this._appManager.find(appId)) {
-                return socket.disconnect();
-            }
-
             this.getChannelInstance(data.channel).join(socket, data);
         });
     }

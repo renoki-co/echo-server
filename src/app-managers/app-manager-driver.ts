@@ -5,7 +5,9 @@ export interface AppManagerDriver {
      * Find an app by given ID.
      *
      * @param  {string|number}  id
-     * @return {App|null}
+     * @param  {any}  socket
+     * @param  {any}  data
+     * @return {Promise<App|null>}
      */
-    find(id: string|number): App|null;
+    find(id: string|number, socket: any, data: any): Promise<App|null>;
 }

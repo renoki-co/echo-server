@@ -121,12 +121,15 @@ export class PresenceChannel extends PrivateChannel {
         this.getMembers(this.getNspForSocket(socket), channel).then(members => {
             members = members || [];
             let currentMember = members.find(member => member.socketId === socket.id);
-            let otherMembers = members.filter(member => member.socketId !== currentMember.socketId);
 
-            delete currentMember.socketId;
+            if (currentMember) {
+                let otherMembers = members.filter(member => member.socketId !== currentMember.socketId);
 
-            this.db.set(`${this.getNspForSocket(socket)}:${channel}:members`, otherMembers);
-            this.onLeave(socket, channel, currentMember);
+                delete currentMember.socketId;
+
+                this.db.set(`${this.getNspForSocket(socket)}:${channel}:members`, otherMembers);
+                this.onLeave(socket, channel, currentMember);
+            }
         }, (error) => Log.error(error));
     }
 

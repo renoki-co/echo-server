@@ -15,13 +15,19 @@ export class ArrayAppManager implements AppManagerDriver {
      * Find an app by given ID.
      *
      * @param  {string|number}  id
-     * @return {App|null}
+     * @param  {any}  socket
+     * @param  {any}  data
+     * @return {Promise<App|null>}
      */
-    find(id: string|number): App|null {
-        let app = this.options.appManager.array.apps.find(app => app.id === id);
+    find(id: string|number, socket: any, data: any): Promise<App|null> {
+        return new Promise((resolve, reject) => {
+            let app = this.options.appManager.array.apps.find(app => app.id === id);
 
-        return typeof app !== 'undefined'
-            ? new App(app.id, app.key, app.secret)
-            : null
+            if (typeof app !== 'undefined') {
+                resolve(new App(app.id, app.key, app.secret));
+            } else {
+                reject({ reason: `App ${id} not found.` });
+            }
+        });
     }
 }
