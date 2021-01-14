@@ -21,14 +21,15 @@ export class EchoServer {
             driver: 'array',
             api: {
                 host: 'http://127.0.0.1',
-                endpoint: '/echo-server/app',
+                endpoint: '/echo-server/app/:appId',
+                token: 'echo-app-token',
             },
             array: {
                 apps: [
                     {
                         id: 'echo-app',
                         key: 'echo-app-key',
-                        secret: 'echo-app-secret',
+                        secret: 'echo-app-secret'
                     },
                 ],
             },
@@ -121,13 +122,13 @@ export class EchoServer {
      *
      * @type {AppManager}
      */
-    protected _appManager;
+    protected appManager;
 
     /**
      * Create a new Echo Server instance.
      */
     constructor() {
-        this._appManager = new AppManager(this.options);
+        //
     }
 
     /**
@@ -171,11 +172,13 @@ export class EchoServer {
      */
     initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
+            this.appManager = new AppManager(this.options);
+
             this.publicChannel = new Channel(io, this.options);
             this.privateChannel = new PrivateChannel(io, this.options);
             this.presenceChannel = new PresenceChannel(io, this.options);
 
-            this.httpApi = new HttpApi(this, io, this.server.express, this.options);
+            this.httpApi = new HttpApi(this, io, this.server.express, this.options, this.appManager);
 
             this.httpApi.initialize();
 
@@ -200,9 +203,9 @@ export class EchoServer {
      * Get the App ID from the socket connection.
      *
      * @param  {any}  socket
-     * @return {string|number|undefined}
+     * @return {string|undefined}
      */
-    protected getAppId(socket: any): string|number|undefined {
+    protected getAppId(socket: any): string|undefined {
         return socket.handshake.query.appId;
     }
 
@@ -212,17 +215,38 @@ export class EchoServer {
      * @return {void}
      */
     protected registerConnectionCallbacks(): void {
-        this.server.io.of(/.*/).on('connection', socket => {
-            let appId = this.getAppId(socket);
+        let nsp = this.server.io.of(/.*/);
 
-            this._appManager.find(appId).then(app => {
-                socket.echo = { app };
+        nsp.use((socket, next) => {
+            if (socket.echoApp) {
+                return next();
+            }
 
-                this.onSubscribe(socket);
-                this.onUnsubscribe(socket);
-                this.onDisconnecting(socket);
-                this.onClientEvent(socket);
-            }, error => socket.disconnect());
+            this.appManager.find(this.getAppId(socket), socket, {}).then(app => {
+                if (app) {
+                    socket.echoApp = app;
+                    next();
+                } else {
+                    socket.disconnect();
+                }
+            }, error => {
+                if (this.options.development) {
+                    Log.error({
+                        time: new Date().toISOString(),
+                        socketId: socket ? socket.id : null,
+                        action: 'find_app',
+                        status: 'failed',
+                        error,
+                    });
+                }
+            });
+        });
+
+        nsp.on('connection', socket => {
+            this.onSubscribe(socket);
+            this.onUnsubscribe(socket);
+            this.onDisconnecting(socket);
+            this.onClientEvent(socket);
         });
     }
 

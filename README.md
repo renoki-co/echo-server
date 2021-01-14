@@ -76,8 +76,9 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
-| `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
 | `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app", "key":"echo-app-key","secret":"echo-app-secret"}]'` | - | The list of apps to be used for authentication. |
+| `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
+| `APPS_MANAGER_TOKEN` | `appManager.api.token` | `echo-app-token` | - | The token used for any API app manager provider to know the request came from the Node.js server. |
 | `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
 | `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http:/127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
@@ -86,7 +87,7 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
 | `REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
 | `REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |
-| `REDIS_KEY_PREFIX` | `database.redis.keyPrefix` | `echo-server` | - | The key prefix for Redis. Only for `redis` driver. |
+| `REDIS_PREFIX` | `database.redis.keyPrefix` | `echo-server` | - | The key prefix for Redis. Only for `redis` driver. |
 | `SOCKET_HOST` | `host` | `null` | - |The host used for Socket.IO |
 | `SOCKET_PORT` | `port` | `6001` | - | The port used for Socket.IO |
 | `SOCKET_PROTOCOL` | `protocol` | `http` | `http`, `https` | The protocol used for the Socket.IO. |
