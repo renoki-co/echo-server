@@ -1,4 +1,3 @@
-import { AppManager } from './../app-managers/app-manager';
 import { Log } from './../log';
 import { PresenceChannel } from './../channels/presence-channel';
 
@@ -8,22 +7,22 @@ const url = require('url');
 
 export class HttpApi {
     /**
-     * The app manager used for client authentication.
-     *
-     * @type {AppManager}
-     */
-    protected _appManager;
-
-    /**
      * Create new instance of HTTP API.
      *
      * @param {any} server
      * @param {any}  io
      * @param {any} express
      * @param {object} options
+     * @param {any}  appManager
      */
-    constructor(protected server, protected io, protected express, protected options) {
-        this._appManager = new AppManager(options);
+    constructor(
+        protected server,
+        protected io,
+        protected express,
+        protected options,
+        protected appManager
+    ) {
+        //
     }
 
     /**
@@ -242,7 +241,13 @@ export class HttpApi {
      */
     protected getSignedToken(req: any): Promise<string> {
         return new Promise((resolve, reject) => {
-            this._appManager.find(this.getAppId(req)).then(app => {
+            let socketData = {
+                auth: {
+                    headers: req.headers,
+                },
+            };
+
+            this.appManager.find(this.getAppId(req), null, socketData).then(app => {
                 if (!app) {
                     reject({ reason: 'App not found when signing token.' });
                 }
@@ -275,6 +280,13 @@ export class HttpApi {
                         pusherUtil.toOrderedArray(params).join('&'),
                     ].join("\n"))
                 );
+            }, error => {
+                Log.error({
+                    time: new Date().toISOString(),
+                    action: 'find_app',
+                    status: 'failed',
+                    error,
+                });
             });
         });
     }

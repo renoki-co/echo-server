@@ -60,7 +60,8 @@ export class PrivateChannel extends Channel {
             url: this.getAuthenticatonHost(socket) + this.options.auth.endpoint,
             form: { channel_name: data.channel },
             headers: (data.auth && data.auth.headers) ? data.auth.headers : {},
-            rejectUnauthorized: false
+            method: 'post',
+            rejectUnauthorized: false,
         };
 
         if (this.options.development) {

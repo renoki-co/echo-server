@@ -22,33 +22,37 @@ export class SocketRequester {
     /**
      * Send a request to the server.
      *
+     * @param  {string}  method
      * @param  {any}  socket
      * @param  {any}  options
      * @return {Promise<any>}
      */
     serverRequest(socket: any, options: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            options.headers = this.prepareHeaders(socket, options);
+            options = {
+                ...options,
+                ...{
+                    headers: this.prepareHeaders(socket, options),
+                },
+            };
 
-            this.request.post(options, (error, response, body, next) => {
+            this.request(options, (error, response, body, next) => {
                 if (error) {
-                    if (this.options.development) {
-                        Log.error({
-                            time: new Date().toISOString(),
-                            socketId: socket.id,
-                            options,
-                            action: 'auth',
-                            status: 'failed',
-                            error,
-                        });
-                    }
+                    Log.error({
+                        time: new Date().toISOString(),
+                        socketId: socket ? socket.id : null,
+                        options,
+                        action: 'auth',
+                        status: 'failed',
+                        error,
+                    });
 
                     reject({ reason: 'Error sending authentication request.', status: 0 });
                 } else if (response.statusCode !== 200) {
                     if (this.options.development) {
                         Log.warning({
                             time: new Date().toISOString(),
-                            socketId: socket.id,
+                            socketId: socket ? socket.id : null,
                             options,
                             action: 'auth',
                             status: 'non_200',
@@ -62,7 +66,7 @@ export class SocketRequester {
                     if (this.options.development) {
                         Log.info({
                             time: new Date().toISOString(),
-                            socketId: socket.id,
+                            socketId: socket ? socket.id : null,
                             options,
                             action: 'auth',
                             status: 'success',

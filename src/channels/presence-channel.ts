@@ -90,10 +90,8 @@ export class PresenceChannel extends PrivateChannel {
                         }
 
                         resolve(res);
-                    }, (error) => Log.error(error));
-                }, () => {
-                    Log.error('Error retrieving pressence channel members.');
-                });
+                    }, error => Log.error(error));
+                }, () => Log.error('Error retrieving pressence channel members.'));
             }, error => {
                 if (this.options.development) {
                     Log.error(error.reason);
@@ -130,7 +128,7 @@ export class PresenceChannel extends PrivateChannel {
                 this.db.set(`${this.getNspForSocket(socket)}:${channel}:members`, otherMembers);
                 this.onLeave(socket, channel, currentMember);
             }
-        }, (error) => Log.error(error));
+        }, error => Log.error(error));
     }
 
     /**
@@ -211,7 +209,7 @@ export class PresenceChannel extends PrivateChannel {
 
                     resolve(false);
                 });
-            }, (error) => Log.error(error));
+            }, error => Log.error(error));
         });
     }
 }
