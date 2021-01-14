@@ -23,6 +23,8 @@ If you are using your application in your day-to-day job, on presentation demos,
 ## Current Milestones
 
 - Testing
+- App-by-App CORS settings
+- Maximum connections settings
 
 ## System Requirements
 
@@ -78,10 +80,12 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
 | `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app", "key":"echo-app-key","secret":"echo-app-secret"}]'` | - | The list of apps to be used for authentication. |
 | `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
+| `APPS_MANAGER_ENDPOINT` | `appManager.api.endpoint` | `/echo-server/app/:appId` | - | The endpoint used to retrieve an app. This is for `api` driver. |
+| `APPS_MANAGER_HOST` | `appManager.api.host` | `http://127.0.0.1` | - | The host used to make call, alongside with the endpoint, to retrieve apps. |
 | `APPS_MANAGER_TOKEN` | `appManager.api.token` | `echo-app-token` | - | The token used for any API app manager provider to know the request came from the Node.js server. |
-| `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
 | `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
-| `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http:/127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
+| `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
+| `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http://127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
 | `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
@@ -160,9 +164,13 @@ window.Echo = new Echo({
 });
 ```
 
-## Application Drivers
+## Apps Manager Drivers
 
-Coming soon.
+By default, the apps can be defined by passing an array, as explained earlier, using `APPS_LIST` variable.
+
+However, you might want to store multiple apps in a dynamic & controlled manner. The `api` driver comes in place to help with that. You can specify the host, endpoint and a verification token that can make requests on Echo Server's behalf and retrieve the apps.
+
+In Laravel, you can use [renoki-co/echo-server-core](https://github.com/renoki-co/echo-server-core), and extend the functionality for the `api` driver by storing the apps into database. It comes out-of-the-box with migrations and models, so you can immediately extend the core functionality for Echo Server.
 
 ## SSL Support
 
