@@ -2,6 +2,7 @@ import { App } from './../app';
 import { AppManagerDriver } from './app-manager-driver';
 import { ArrayAppManager } from './array-app-manager';
 import { Log } from './../log';
+import { ApiAppManager } from './api-app-manager';
 
 /**
  * Class that controls the key/value data store.
@@ -20,6 +21,8 @@ export class AppManager implements AppManagerDriver {
     constructor(protected options: any) {
         if (options.appManager.driver === 'array') {
             this.driver = new ArrayAppManager(options);
+        } else if (options.appManager.driver === 'api') {
+            this.driver = new ApiAppManager(options);
         } else {
             Log.error('Clients driver not set.');
         }
