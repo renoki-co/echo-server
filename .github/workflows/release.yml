@@ -42,10 +42,14 @@ jobs:
       run: |
          npm run test
 
+    - name: Compute GitHub tag
+      id: tag
+      uses: dawidd6/action-get-tag@v1
+
     - name: Publish
       run: |
         npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
-        npm publish --access public
+        npm publish --access=public --tag=${{ steps.tag.outputs.tag }}
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
