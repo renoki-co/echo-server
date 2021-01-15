@@ -206,7 +206,7 @@ export class EchoServer {
      * @return {string|undefined}
      */
     protected getAppId(socket: any): string|undefined {
-        return socket.handshake.query.appId;
+        return socket.nsp.name.replace(/^\//g, ''); // remove the starting slash
     }
 
     /**
@@ -225,7 +225,7 @@ export class EchoServer {
             let appId = this.getAppId(socket);
 
             this.appManager.find(appId, socket, {}).then(app => {
-                if (!app || socket.nsp.name !== `/${appId}`) {
+                if (!app) {
                     socket.disconnect();
                 } else {
                     socket.echoApp = app;
