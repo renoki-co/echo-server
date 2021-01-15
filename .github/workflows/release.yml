@@ -49,7 +49,8 @@ jobs:
     - name: Publish
       run: |
         npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
-        npm publish --access=public --tag=${{ steps.tag.outputs.tag }}
+        npm version ${{ steps.tag.outputs.tag }}
+        npm publish --access=public
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
