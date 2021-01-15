@@ -222,12 +222,14 @@ export class EchoServer {
                 return next();
             }
 
-            this.appManager.find(this.getAppId(socket), socket, {}).then(app => {
-                if (app) {
+            let appId = this.getAppId(socket);
+
+            this.appManager.find(appId, socket, {}).then(app => {
+                if (!app || socket.nsp.name !== `/${appId}`) {
+                    socket.disconnect();
+                } else {
                     socket.echoApp = app;
                     next();
-                } else {
-                    socket.disconnect();
                 }
             }, error => {
                 if (this.options.development) {
