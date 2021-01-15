@@ -79,6 +79,8 @@ export class Channel {
      * @return {void}
      */
     onJoin(socket: any, channel: string, member: any): void {
+        socket.emit('channel:joined', channel);
+
         if (this.options.development) {
             Log.info({
                 time: new Date().toISOString(),
