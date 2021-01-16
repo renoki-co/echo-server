@@ -24,7 +24,7 @@ export class ArrayAppManager implements AppManagerDriver {
             let app = this.options.appManager.array.apps.find(app => app.id === id);
 
             if (typeof app !== 'undefined') {
-                resolve(new App(app.id, app.key, app.secret));
+                resolve(new App(app.id, app.key, app.secret, app.maxConnections));
             } else {
                 reject({ reason: `App ${id} not found.` });
             }

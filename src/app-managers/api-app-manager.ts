@@ -47,7 +47,7 @@ export class ApiAppManager implements AppManagerDriver {
 
         return new Promise((resolve, reject) => {
             this._socketRequester.serverRequest(socket, options).then(body => {
-                let { id, key, secret } = body.app;
+                let { id, key, secret, maxConnections } = body.app;
 
                 if (this.options.development) {
                     Log.info({
@@ -59,7 +59,7 @@ export class ApiAppManager implements AppManagerDriver {
                     });
                 }
 
-                resolve(new App(id, key, secret));
+                resolve(new App(id, key, secret, maxConnections));
             }, error => {
                 if (this.options.development) {
                     Log.error(error.reason);
