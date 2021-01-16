@@ -74,6 +74,7 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
+| `APP_DEFAULT_ALLOWED_ORIGINS` | `appManager.array.apps.0.allowedOrigins` | `["*"]` | - | The default app allowed origins for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | - | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_MAX_CONNS` | `apiManager.array.apps.0.maxConnections` | `NaN` | - | The default app's limit of concurrent connections. Overrides the `APPS_LIST` if set. |
@@ -85,7 +86,7 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `APPS_MANAGER_TOKEN` | `appManager.api.token` | `echo-app-token` | - | The token used for any API app manager provider to know the request came from the Node.js server. |
 | `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
 | `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
-| `CORS_ALLOWED_ORIGINS` | `cors.origin` | `['http://127.0.0.1']` | - | The array of allowed origins that can connect to the WS. |
+| `CORS_ALLOWED_ORIGINS` | `cors.origin` | `["*"]` | - | The array of allowed origins that can connect to the WS. |
 | `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
@@ -107,7 +108,7 @@ This server is 100% compatible with the Pusher API, meaning you can use the `pus
 However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver:
 
 ```bash
-$ APPS_LIST='[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"100"}]' echo-server start
+$ APPS_LIST='[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret"}]' echo-server start
 ```
 
 You will need to add a new connection to the broadcasting list:

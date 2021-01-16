@@ -23,6 +23,7 @@ export class Cli {
      * @type {any}
      */
     envVariables: any = {
+        APP_DEFAULT_ALLOWED_ORIGINS: 'appManager.array.apps.0.allowedOrigins',
         APP_DEFAULT_ID: 'appManager.array.apps.0.id',
         APP_DEFAULT_KEY: 'appManager.array.apps.0.key',
         APP_DEFAULT_MAX_CONNS: 'appManager.array.apps.0.maxConnections',
