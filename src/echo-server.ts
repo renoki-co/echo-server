@@ -30,7 +30,7 @@ export class EchoServer {
                         id: 'echo-app',
                         key: 'echo-app-key',
                         secret: 'echo-app-secret',
-                        // maxConnections: 100,
+                        maxConnections: -1,
                     },
                 ],
             },
