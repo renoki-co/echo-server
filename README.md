@@ -77,8 +77,9 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | - | - | - | - | - |
 | `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_MAX_CONNS` | `apiManager.array.apps.0.maxConnections` | `NaN` | The default app's limit of concurrent connections. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
-| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app", "key":"echo-app-key","secret":"echo-app-secret"}]'` | - | The list of apps to be used for authentication. |
+| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"100"}]'` | - | The list of apps to be used for authentication. |
 | `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
 | `APPS_MANAGER_ENDPOINT` | `appManager.api.endpoint` | `/echo-server/app/:appId` | - | The endpoint used to retrieve an app. This is for `api` driver. |
 | `APPS_MANAGER_HOST` | `appManager.api.host` | `http://127.0.0.1` | - | The host used to make call, alongside with the endpoint, to retrieve apps. It will be passed in the request as `?token=` |
@@ -107,7 +108,7 @@ This server is 100% compatible with the Pusher API, meaning you can use the `pus
 However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver:
 
 ```bash
-$ APPS_LIST='[{ id: "echo-app", key: "echo-app-key", "secret": "echo-app-secret" }]' echo-server start
+$ APPS_LIST='[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"100"}]' echo-server start
 ```
 
 You will need to add a new connection to the broadcasting list:

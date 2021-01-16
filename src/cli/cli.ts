@@ -25,6 +25,7 @@ export class Cli {
     envVariables: any = {
         APP_DEFAULT_ID: 'appManager.array.apps.0.id',
         APP_DEFAULT_KEY: 'appManager.array.apps.0.key',
+        APP_DEFAULT_MAX_CONNS: 'appManager.array.apps.0.maxConnections',
         APP_DEFAULT_SECRET: 'appManager.array.apps.0.secret',
         APPS_LIST: 'appManager.array.apps',
         APPS_MANAGER_DRIVER: 'appManager.driver',

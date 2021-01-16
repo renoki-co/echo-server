@@ -30,7 +30,7 @@ export class PrivateChannel extends Channel {
      * @param  {any}  data
      * @return {Promise<any>}
      */
-    join(socket, data): Promise<any> {
+    join(socket: any, data: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.authenticate(socket, data).then(res => {
                 super.join(socket, data).then(({ socket, data }) => resolve(res));

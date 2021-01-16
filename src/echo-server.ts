@@ -29,7 +29,8 @@ export class EchoServer {
                     {
                         id: 'echo-app',
                         key: 'echo-app-key',
-                        secret: 'echo-app-secret'
+                        secret: 'echo-app-secret',
+                        // maxConnections: 100,
                     },
                 ],
             },
@@ -200,13 +201,23 @@ export class EchoServer {
     }
 
     /**
+     * Extract the namespace from socket.
+     *
+     * @param  {any}  socket
+     * @return string
+     */
+    getNspForSocket(socket: any) {
+        return socket ? socket.nsp.name : '/';
+    }
+
+    /**
      * Get the App ID from the socket connection.
      *
      * @param  {any}  socket
      * @return {string|undefined}
      */
     protected getAppId(socket: any): string|undefined {
-        return socket.nsp.name.replace(/^\//g, ''); // remove the starting slash
+        return this.getNspForSocket(socket).replace(/^\//g, ''); // remove the starting slash
     }
 
     /**
@@ -218,37 +229,32 @@ export class EchoServer {
         let nsp = this.server.io.of(/.*/);
 
         nsp.use((socket, next) => {
-            if (socket.echoApp) {
-                return next();
-            }
+            this.checkIfSocketHasValidEchoApp(socket).then(socket => {
+                next();
+            }, error => {
+                socket.disconnect();
+            });
+        });
 
-            let appId = this.getAppId(socket);
-
-            this.appManager.find(appId, socket, {}).then(app => {
-                if (!app) {
-                    socket.disconnect();
-                } else {
-                    socket.echoApp = app;
-                    next();
-                }
+        nsp.on('connection', socket => {
+            this.checkIfSocketReachedLimit(socket).then(socket => {
+                this.onSubscribe(socket);
+                this.onUnsubscribe(socket);
+                this.onDisconnecting(socket);
+                this.onClientEvent(socket);
             }, error => {
                 if (this.options.development) {
                     Log.error({
                         time: new Date().toISOString(),
                         socketId: socket ? socket.id : null,
-                        action: 'find_app',
+                        action: 'max_connections_check',
                         status: 'failed',
                         error,
                     });
                 }
-            });
-        });
 
-        nsp.on('connection', socket => {
-            this.onSubscribe(socket);
-            this.onUnsubscribe(socket);
-            this.onDisconnecting(socket);
-            this.onClientEvent(socket);
+                socket.disconnect();
+            });
         });
     }
 
@@ -321,5 +327,72 @@ export class EchoServer {
         } else {
             return this.publicChannel;
         }
+    }
+
+    /**
+     * Make sure if the socket connected
+     * to a valid echo app.
+     *
+     * @param  {any}  socket
+     * @return {Promise<any>}
+     */
+    protected checkIfSocketHasValidEchoApp(socket: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (socket.echoApp) {
+                return resolve(socket);
+            }
+
+            let appId = this.getAppId(socket);
+
+            this.appManager.find(appId, socket, {}).then(app => {
+                if (!app) {
+                    reject({ reason: `The app ${appId} does not exist` });
+                } else {
+                    socket.echoApp = app;
+                    resolve(socket);
+                }
+            }, error => {
+                if (this.options.development) {
+                    Log.error({
+                        time: new Date().toISOString(),
+                        socketId: socket ? socket.id : null,
+                        action: 'find_app',
+                        status: 'failed',
+                        error,
+                    });
+                }
+
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * Make sure the socket connection did not
+     * reach the app limit.
+     *
+     * @param  {any}  socket
+     * @return {Promise<any>}
+     */
+    protected checkIfSocketReachedLimit(socket: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (socket.disconnected || !socket.echoApp) {
+                return reject({ reason: 'The connection cannot check if reached the limit, because it was not authenticated.' });
+            }
+
+            this.server.io.of(this.getNspForSocket(socket)).allSockets().then(clients => {
+                let maxConnections = parseInt(socket.echoApp.maxConnections) || -1;
+
+                if (maxConnections < 0) {
+                    return resolve(socket);
+                }
+
+                if (maxConnections >= clients.size) {
+                    resolve(socket);
+                } else {
+                    reject({ reason: 'The current app reached connections limit.' });
+                }
+            }, error => Log.error(error));
+        });
     }
 }

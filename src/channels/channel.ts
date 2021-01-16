@@ -37,7 +37,7 @@ export class Channel {
      * @param  {any}  data
      * @return {Promise<any>}
      */
-    join(socket, data): Promise<any> {
+    join(socket: any, data: any): Promise<any> {
         return new Promise((resolve, reject) => {
             socket.join(data.channel);
             this.onJoin(socket, data.channel, null);
@@ -99,7 +99,7 @@ export class Channel {
      * @param  {any}  data
      * @return {void}
      */
-    onClientEvent(socket, data): void {
+    onClientEvent(socket: any, data: any): void {
         try {
             data = JSON.parse(data);
         } catch (e) {
