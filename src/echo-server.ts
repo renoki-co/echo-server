@@ -444,6 +444,8 @@ export class EchoServer {
             }
 
             allowedOrigins.forEach(pattern => {
+                // Make sure to prepend the Regex special characters with a backslash, so that
+                // things from the origin like "/" or "." do not count as Regex characters.
                 let regex = new RegExp(pattern.replace(/(\.|\||\+|\?|\$|\/|\-|\\)/g, '\\$1').replace('*', '.*'));
 
                 if (regex.test(socketOrigin)) {
