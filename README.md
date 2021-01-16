@@ -3,7 +3,7 @@ Revamped Echo Server
 
 ![CI](https://github.com/renoki-co/echo-server/workflows/CI/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/renoki-co/echo-server/branch/master/graph/badge.svg)](https://codecov.io/gh/renoki-co/echo-server/branch/master)
-[![Latest Stable Version](https://img.shields.io/github/package-json/v/renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
+[![Latest Stable Version](https://img.shields.io/github/v/release/renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
 [![Total Downloads](https://img.shields.io/npm/dt/@renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
 [![License](https://img.shields.io/npm/l/@renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
 
