@@ -31,6 +31,7 @@ export class EchoServer {
                         key: 'echo-app-key',
                         secret: 'echo-app-secret',
                         maxConnections: -1,
+                        allowedOrigins: ['*'],
                     },
                 ],
             },
@@ -41,7 +42,7 @@ export class EchoServer {
         },
         cors: {
             credentials: true,
-            origin: ['http://127.0.0.1'],
+            origin: ['*'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: [
                 'Origin',
@@ -230,8 +231,32 @@ export class EchoServer {
 
         nsp.use((socket, next) => {
             this.checkIfSocketHasValidEchoApp(socket).then(socket => {
-                next();
+                this.checkIfSocketOriginIsAllowed(socket).then(socket => {
+                    next();
+                }, error => {
+                    if (this.options.development) {
+                        Log.error({
+                            time: new Date().toISOString(),
+                            socketId: socket ? socket.id : null,
+                            action: 'origin_check',
+                            status: 'failed',
+                            error,
+                        });
+                    }
+
+                    socket.disconnect();
+                });
             }, error => {
+                if (this.options.development) {
+                    Log.error({
+                        time: new Date().toISOString(),
+                        socketId: socket ? socket.id : null,
+                        action: 'app_check',
+                        status: 'failed',
+                        error,
+                    });
+                }
+
                 socket.disconnect();
             });
         });
@@ -377,7 +402,7 @@ export class EchoServer {
     protected checkIfSocketReachedLimit(socket: any): Promise<any> {
         return new Promise((resolve, reject) => {
             if (socket.disconnected || !socket.echoApp) {
-                return reject({ reason: 'The connection cannot check if reached the limit, because it was not authenticated.' });
+                return reject({ reason: 'The app connection limit cannot be checked because the socket is not authenticated.' });
             }
 
             this.server.io.of(this.getNspForSocket(socket)).allSockets().then(clients => {
@@ -392,7 +417,45 @@ export class EchoServer {
                 } else {
                     reject({ reason: 'The current app reached connections limit.' });
                 }
-            }, error => Log.error(error));
+            }, error => {
+                Log.error(error);
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * Check if the socket origin is allowed
+     * @param  {any}  socket
+     * @return {Promise<any>}
+     */
+    protected checkIfSocketOriginIsAllowed(socket: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (socket.disconnected || !socket.echoApp) {
+                return reject({ reason: 'The origin cannot be checked because the socket is not authenticated.' });
+            }
+
+            let originIsAllowed = false;
+            let allowedOrigins = socket.echoApp.allowedOrigins || ['*'];
+            let socketOrigin = socket.handshake.headers.origin || null;
+
+            if (!socketOrigin) {
+                return reject({ reason: 'The origin header is not existent' });
+            }
+
+            allowedOrigins.forEach(pattern => {
+                let regex = new RegExp(pattern.replace(/(\.|\||\+|\?|\$|\/|\-|\\)/g, '\\$1').replace('*', '.*'));
+
+                if (regex.test(socketOrigin)) {
+                    originIsAllowed = true;
+                }
+            });
+
+            if (originIsAllowed) {
+                resolve(socket);
+            } else {
+                reject({ reason: `The origin ${socketOrigin} is not allowed.` });
+            }
         });
     }
 }
