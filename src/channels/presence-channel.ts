@@ -39,7 +39,7 @@ export class PresenceChannel extends PrivateChannel {
                 this.db.set(`${this.getNspForSocket(socket)}:${channel}:members`, members);
 
                 resolve(members);
-            });
+            }, error => Log.error(error));
         });
     }
 
@@ -50,7 +50,7 @@ export class PresenceChannel extends PrivateChannel {
      * @param  {any}  data
      * @return {Promise<any>}
      */
-    join(socket, data): Promise<any> {
+    join(socket: any, data: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.authenticate(socket, data).then(res => {
                 let member = res.channel_data;
