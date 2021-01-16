@@ -24,7 +24,6 @@ If you are using your application in your day-to-day job, on presentation demos,
 
 - Testing
 - App-by-App CORS settings
-- Maximum connections settings
 
 ## System Requirements
 
