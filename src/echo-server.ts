@@ -32,13 +32,11 @@ export class EchoServer {
                         secret: 'echo-app-secret',
                         maxConnections: -1,
                         allowedOrigins: ['*'],
+                        authHosts: ['http://127.0.0.1'],
+                        authEndpoint: '/broadcasting/auth',
                     },
                 ],
             },
-        },
-        auth: {
-            host: 'http://127.0.0.1',
-            endpoint: '/broadcasting/auth',
         },
         cors: {
             credentials: true,

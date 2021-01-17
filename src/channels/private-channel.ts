@@ -36,7 +36,7 @@ export class PrivateChannel extends Channel {
                 super.join(socket, data).then(({ socket, data }) => resolve(res));
             }, error => {
                 if (this.options.development) {
-                    Log.error(error.reason);
+                    Log.error(error);
                 }
 
                 this.io.of(this.getNspForSocket(socket))
@@ -57,7 +57,7 @@ export class PrivateChannel extends Channel {
      */
     protected authenticate(socket: any, data: any): Promise<any> {
         let options = {
-            url: this.getAuthenticatonHost(socket) + this.options.auth.endpoint,
+            url: this.getAuthenticatonHost(socket) + (socket.echoApp.authEndpoint || '/broadcasting/auth'),
             form: { channel_name: data.channel },
             headers: (data.auth && data.auth.headers) ? data.auth.headers : {},
             method: 'post',
@@ -83,11 +83,7 @@ export class PrivateChannel extends Channel {
      * @return {string}
      */
     protected getAuthenticatonHost(socket: any): string {
-        let authHosts = this.options.auth.host ? this.options.auth.host : this.options.host;
-
-        if (typeof authHosts === 'string') {
-            authHosts = [authHosts];
-        }
+        let authHosts = socket.echoApp.authHosts || ['http://127.0.0.1'];
 
         let selectedAuthHost = authHosts[0] || 'http://127.0.0.1';
 

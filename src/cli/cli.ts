@@ -24,6 +24,8 @@ export class Cli {
      */
     envVariables: any = {
         APP_DEFAULT_ALLOWED_ORIGINS: 'appManager.array.apps.0.allowedOrigins',
+        APP_DEFAULT_AUTH_ENDPOINT: 'appManager.array.apps.0.authEndpoint',
+        APP_DEFAULT_AUTH_HOSTS: 'appManager.array.apps.0.authHosts',
         APP_DEFAULT_ID: 'appManager.array.apps.0.id',
         APP_DEFAULT_KEY: 'appManager.array.apps.0.key',
         APP_DEFAULT_MAX_CONNS: 'appManager.array.apps.0.maxConnections',
@@ -33,8 +35,6 @@ export class Cli {
         APPS_MANAGER_ENDPOINT: 'appManager.api.endpoint',
         APPS_MANAGER_HOST: 'appManager.api.host',
         APPS_MANAGER_TOKEN: 'appManager.api.token',
-        AUTH_ENDPOINT: 'auth.endpoint',
-        AUTH_HOST: 'auth.host',
         CORS_ALLOWED_ORIGINS: 'cors.origin',
         DATABASE_DRIVER: 'database.driver',
         DEBUG: 'development',
