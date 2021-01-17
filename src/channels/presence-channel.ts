@@ -63,7 +63,7 @@ export class PresenceChannel extends PrivateChannel {
 
                 if (!member) {
                     if (this.options.development) {
-                        Log.error('Unable to join channel. Member data for presence channel missing.');
+                        Log.error('Unable to join channel. Member data for presence channel missing. Maybe the authentication host and/or url is not right?');
                     }
 
                     return;
@@ -94,7 +94,7 @@ export class PresenceChannel extends PrivateChannel {
                 }, () => Log.error('Error retrieving pressence channel members.'));
             }, error => {
                 if (this.options.development) {
-                    Log.error(error.reason);
+                    Log.error(error);
                 }
 
                 this.io.of(this.getNspForSocket(socket))

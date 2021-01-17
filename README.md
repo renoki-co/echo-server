@@ -75,17 +75,17 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
 | `APP_DEFAULT_ALLOWED_ORIGINS` | `appManager.array.apps.0.allowedOrigins` | `["*"]` | - | The default app allowed origins for the array driver. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_AUTH_ENDPOINT` | `appManager.array.apps.0.authEndpoint` | `/broadcasting/auth` | - | The default endpoint to call with the host when authenticating users. Overrides the `APPS_LIST` if set. |
+| `APP_DEFAULT_AUTH_HOSTS` | `appManager.array.apps.0.authHosts` | `["http://127.0.0.1"]` | - | The default host to call when authenticating users. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | - | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_MAX_CONNS` | `apiManager.array.apps.0.maxConnections` | `NaN` | - | The default app's limit of concurrent connections. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | - | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
-| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"-1"}]'` | - | The list of apps to be used for authentication. |
+| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"-1","authHosts":"[\"http://127.0.0.1\"]","authEndpoint":"/broadcasting/auth"}]'` | - | The list of apps to be used for authentication. |
 | `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
 | `APPS_MANAGER_ENDPOINT` | `appManager.api.endpoint` | `/echo-server/app/:appId` | - | The endpoint used to retrieve an app. This is for `api` driver. |
 | `APPS_MANAGER_HOST` | `appManager.api.host` | `http://127.0.0.1` | - | The host used to make call, alongside with the endpoint, to retrieve apps. It will be passed in the request as `?token=` |
 | `APPS_MANAGER_TOKEN` | `appManager.api.token` | `echo-app-token` | - | The token used for any API app manager provider to know the request came from the Node.js server. |
-| `AUTH_ENDPOINT` | `auth.endpoint` | `/broadcasting/auth` | - | The path for the Laravel application's auth path used for authentication. |
-| `AUTH_HOST` | `auth.host` | `http://127.0.0.1` | - | The host for the Laravel application. |
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `["*"]` | - | The array of allowed origins that can connect to the WS. |
 | `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |

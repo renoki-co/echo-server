@@ -7,6 +7,8 @@ export class App {
      * @param {string} secret
      * @param {number} maxConnections
      * @param {string[]} allowedOrigins
+     * @param {string[]} authHosts
+     * @param {string} authEndpoint
      */
     constructor(
         public id: string,
@@ -14,6 +16,8 @@ export class App {
         public secret: string,
         public maxConnections: number,
         public allowedOrigins: string[],
+        public authHosts: string[],
+        public authEndpoint: string,
     ) {
         //
     }
