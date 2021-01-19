@@ -393,7 +393,6 @@ export class HttpApi {
                 params: req.params,
                 query: req.query,
                 body: req.body,
-                signedToken: this.getSignedToken(req),
                 givenToken: req.query.auth_signature,
             });
         }
