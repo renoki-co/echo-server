@@ -172,6 +172,11 @@ export class Server {
      * @return {void}
      */
     protected configureJsonBody(): void {
-        this.express.use(bodyParser.json({ strict: false }));
+        this.express.use(bodyParser.json({
+            strict: true,
+            verify: (req, res, buffer) => {
+                req.rawBody = buffer.toString();
+            },
+        }));
     }
 }

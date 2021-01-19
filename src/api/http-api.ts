@@ -331,8 +331,8 @@ export class HttpApi {
                 delete params['appKey'];
                 delete params['channelName'];
 
-                if (req.body && Object.keys(req.body).length > 0) {
-                    params['body_md5'] = pusherUtil.getMD5(JSON.stringify(req.body));
+                if (req.rawBody && Object.keys(req.body).length > 0) {
+                    params['body_md5'] = pusherUtil.getMD5(req.rawBody);
                 }
 
                 resolve(
