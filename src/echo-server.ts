@@ -271,7 +271,7 @@ export class EchoServer {
         });
 
         nsp.on('connection', socket => {
-            this.checkIfSocketReachedLimit(socket).then(socket => {
+            this.checkIfSocketDidNotReachedLimit(socket).then(socket => {
                 this.onSubscribe(socket);
                 this.onUnsubscribe(socket);
                 this.onDisconnecting(socket);
@@ -408,7 +408,7 @@ export class EchoServer {
      * @param  {any}  socket
      * @return {Promise<any>}
      */
-    protected checkIfSocketReachedLimit(socket: any): Promise<any> {
+    protected checkIfSocketDidNotReachedLimit(socket: any): Promise<any> {
         return new Promise((resolve, reject) => {
             if (socket.disconnected || !socket.echoApp) {
                 return reject({ reason: 'The app connection limit cannot be checked because the socket is not authenticated.' });
