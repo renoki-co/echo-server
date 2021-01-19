@@ -8,7 +8,7 @@ export class RedisDatabase implements DatabaseDriver {
      *
      * @type {any}
      */
-    protected _redis: any;
+    protected redis: any;
 
     /**
      *
@@ -16,7 +16,7 @@ export class RedisDatabase implements DatabaseDriver {
      *
      * @type {string}
      */
-    protected _keyPrefix: string;
+    protected keyPrefix: string;
 
     /**
      * Create a new cache instance.
@@ -24,8 +24,8 @@ export class RedisDatabase implements DatabaseDriver {
      * @param {any} options
      */
     constructor(protected options) {
-        this._redis = new Redis(options.database.redis);
-        this._keyPrefix = options.database.redis.keyPrefix || '';
+        this.redis = new Redis(options.database.redis);
+        this.keyPrefix = options.database.redis.keyPrefix || '';
     }
 
     /**
@@ -36,7 +36,7 @@ export class RedisDatabase implements DatabaseDriver {
      */
     get(key: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            this._redis.get(key).then(value => resolve(JSON.parse(value)));
+            this.redis.get(key).then(value => resolve(JSON.parse(value)));
         });
     }
 
@@ -48,6 +48,6 @@ export class RedisDatabase implements DatabaseDriver {
      * @return {void}
      */
     set(key: string, value: any): void {
-        this._redis.set(key, JSON.stringify(value));
+        this.redis.set(key, JSON.stringify(value));
     }
 }

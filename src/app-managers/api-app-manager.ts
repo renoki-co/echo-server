@@ -9,7 +9,7 @@ export class ApiAppManager implements AppManagerDriver {
      *
      * @type {SocketRequester}
      */
-    protected _socketRequester;
+    protected socketRequester;
 
     /**
      * Create a new app manager instance.
@@ -17,7 +17,7 @@ export class ApiAppManager implements AppManagerDriver {
      * @param {any} options
      */
     constructor(protected options) {
-        this._socketRequester = new SocketRequester(options);
+        this.socketRequester = new SocketRequester(options);
     }
 
     /**
@@ -46,7 +46,7 @@ export class ApiAppManager implements AppManagerDriver {
         }
 
         return new Promise((resolve, reject) => {
-            this._socketRequester.serverRequest(socket, options).then(body => {
+            this.socketRequester.serverRequest(socket, options).then(body => {
                 let { id, key, secret, maxConnections, allowedOrigins, authHosts, authEndpoint } = body.app;
 
                 if (this.options.development) {

@@ -10,7 +10,7 @@ export class PrivateChannel extends Channel {
      *
      * @type {SocketRequester}
      */
-    protected _socketRequester;
+    protected socketRequester;
 
     /**
      * Create a new channel instance.
@@ -20,7 +20,7 @@ export class PrivateChannel extends Channel {
      */
     constructor(protected io, protected options) {
         super(io, options);
-        this._socketRequester = new SocketRequester(options);
+        this.socketRequester = new SocketRequester(options);
     }
 
     /**
@@ -73,7 +73,7 @@ export class PrivateChannel extends Channel {
             });
         }
 
-        return this._socketRequester.serverRequest(socket, options);
+        return this.socketRequester.serverRequest(socket, options);
     }
 
     /**
