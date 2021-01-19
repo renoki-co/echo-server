@@ -240,6 +240,15 @@ export class HttpApi {
         });
     }
 
+    /**
+     * Send the events from the request to given namespace,
+     * with the broadcasting of a socket (if any).
+     *
+     * @param  {string}  namespace
+     * @param  {any}  req
+     * @param  {any}  socket
+     * @return {void}
+     */
     protected sendEventToChannels(namespace: string, req: any, socket: any = null): void
     {
         let channels = req.body.channels || [req.body.channel];
