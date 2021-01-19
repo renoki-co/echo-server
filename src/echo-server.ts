@@ -232,12 +232,7 @@ export class EchoServer {
         let nsp = this.server.io.of(/.*/);
 
         nsp.use((socket, next) => {
-            let min = 0;
-            let max = 10000000000;
-
-            let randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-
-            socket.id = randomNumber(min, max) + '.' + randomNumber(min, max);
+            socket.id = this.generateSocketId();
 
             this.checkIfSocketHasValidEchoApp(socket).then(socket => {
                 this.checkIfSocketOriginIsAllowed(socket).then(socket => {
@@ -468,5 +463,19 @@ export class EchoServer {
                 reject({ reason: `The origin ${socketOrigin} is not allowed.` });
             }
         });
+    }
+
+    /**
+     * Generate a Pusher-like socket id.
+     *
+     * @return {string}
+     */
+    protected generateSocketId(): string {
+        let min = 0;
+        let max = 10000000000;
+
+        let randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+        return randomNumber(min, max) + '.' + randomNumber(min, max);
     }
 }
