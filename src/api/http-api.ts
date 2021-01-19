@@ -196,17 +196,79 @@ export class HttpApi {
         }
 
         let appId = this.getAppId(req);
-        let channels = req.body.channels || [req.body.channel];
+        let socketId = req.body.socket_id || null;
 
-        channels.forEach(channel => {
-            this.io.of(`/${appId}`)
-                .to(channel)
-                .emit(req.body.name, channel, req.body.data);
-        });
+        if (socketId) {
+            this.findSocketInNamespace(`/${appId}`, socketId).then(socket => {
+                this.sendEventToChannels(`/${appId}`, req, socket);
+            }, error => {
+                if (this.options.development) {
+                    Log.error({
+                        time: new Date().toISOString(),
+                        socketId,
+                        action: 'socket_find',
+                        status: 'failed',
+                        error,
+                    });
+                }
+            });
+        } else {
+            this.sendEventToChannels(`/${appId}`, req);
+        }
 
         res.json({ message: 'ok' });
 
         return true;
+    }
+
+    /**
+     * Find a Socket by Id in a given namespace.
+     *
+     * @param  {string}  namespace
+     * @param  {string}  socketId
+     * @return {Promise<any>}
+     */
+    protected findSocketInNamespace(namespace: string, socketId: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let socket = this.io.of(namespace).sockets.get(socketId);
+
+            if (socket) {
+                resolve(socket);
+            } else {
+                reject({ reason: `The socket ${socketId} does not exist.`});
+            }
+        });
+    }
+
+    protected sendEventToChannels(namespace: string, req: any, socket: any = null): void
+    {
+        let channels = req.body.channels || [req.body.channel];
+
+        if (this.options.development) {
+            Log.info({
+                time: new Date().toISOString(),
+                socket: socket ? socket : null,
+                action: 'sendEvent',
+                status: 'success',
+                namespace,
+                channels,
+                body: req.body,
+                params: req.params,
+                query: req.query,
+            });
+        }
+
+        channels.forEach(channel => {
+            if (socket) {
+                socket.broadcast
+                    .to(channel)
+                    .emit(req.body.name, channel, req.body.data);
+            } else {
+                this.io.of(namespace)
+                    .to(channel)
+                    .emit(req.body.name, channel, req.body.data);
+            }
+        });
     }
 
     /**
