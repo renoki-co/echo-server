@@ -86,9 +86,9 @@ export class Cli {
     /**
      * Start the Echo server.
      *
-     * @return {void}
+     * @return {Promise<any>}
      */
-    start(yargs: any): void {
+    start(yargs: any): Promise<any> {
         this.overwriteOptionsFromEnv();
 
         const handleFailure = () => {
@@ -100,6 +100,17 @@ export class Cli {
         process.on('SIGHUP', handleFailure);
         process.on('SIGTERM', handleFailure);
 
-        echo.run(this.options);
+        return echo.start(this.options);
+    }
+
+    /**
+     * Stop the server.
+     *
+     * @return {Promise<any>}
+     */
+    stop(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            echo.stop();
+        });
     }
 }

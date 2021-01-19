@@ -137,7 +137,7 @@ export class EchoServer {
      * @param  {any}  options
      * @return {Promise<any>}
      */
-    run(options: any = {}): Promise<any> {
+    start(options: any = {}): Promise<any> {
         return new Promise((resolve, reject) => {
             this.options = Object.assign(this.options, options);
             this.server = new Server(this.options);
@@ -191,12 +191,16 @@ export class EchoServer {
     /**
      * Stop the echo server.
      *
-     * @return {void}
+     * @return {Promise<void>}
      */
-    stop(): void {
-        console.log('Stopping the server...');
+    stop(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            console.log('Stopping the server...');
 
-        this.server.io.close();
+            this.server.io.close();
+
+            resolve();
+        });
     }
 
     /**
