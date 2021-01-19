@@ -228,6 +228,13 @@ export class EchoServer {
         let nsp = this.server.io.of(/.*/);
 
         nsp.use((socket, next) => {
+            let min = 0;
+            let max = 10000000000;
+
+            let randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+            socket.id = randomNumber(min, max) + '.' + randomNumber(min, max);
+
             this.checkIfSocketHasValidEchoApp(socket).then(socket => {
                 this.checkIfSocketOriginIsAllowed(socket).then(socket => {
                     next();

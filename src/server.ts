@@ -45,6 +45,7 @@ export class Server {
                 Log.success(`Running at ${host} on port ${this.options.port}`);
 
                 this.configureAdapters();
+                this.configureSocketIdGeneration();
 
                 resolve(this.io);
             }, error => reject(error));
@@ -134,6 +135,20 @@ export class Server {
                 subClient: subClient,
             }));
         }
+    }
+
+    /**
+     * Configure the Socket.IO ID generation.
+     *
+     * @return {void}
+     */
+    protected configureSocketIdGeneration(): void {
+        let min = 0;
+        let max = 10000000000;
+
+        let randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+        this.io.engine.generateId = req => randomNumber(min, max) + '.' + randomNumber(min, max);
     }
 
     /**
