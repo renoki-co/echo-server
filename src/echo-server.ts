@@ -248,7 +248,7 @@ export class EchoServer {
                         });
                     }
 
-                    socket.disconnect();
+                    next(error);
                 });
             }, error => {
                 if (this.options.development) {
@@ -261,7 +261,7 @@ export class EchoServer {
                     });
                 }
 
-                socket.disconnect();
+                next(error);
             });
         });
 
