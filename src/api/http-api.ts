@@ -352,12 +352,14 @@ export class HttpApi {
                     ].join("\n"))
                 );
             }, error => {
-                Log.error({
-                    time: new Date().toISOString(),
-                    action: 'find_app',
-                    status: 'failed',
-                    error,
-                });
+                if (this.options.development) {
+                    Log.error({
+                        time: new Date().toISOString(),
+                        action: 'find_app',
+                        status: 'failed',
+                        error,
+                    });
+                }
             });
         });
     }
