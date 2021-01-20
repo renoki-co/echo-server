@@ -182,7 +182,10 @@ export class EchoServer {
 
             this.httpApi.initialize();
 
-            this.registerConnectionCallbacks();
+            let nsp = this.server.io.of(/.*/);
+
+            this.registerSocketMiddleware(nsp);
+            this.registerConnectionCallbacks(nsp);
 
             resolve();
         });
@@ -224,13 +227,12 @@ export class EchoServer {
     }
 
     /**
-     * Register callbacks for on('connection') events.
+     * Register the Socket.IO middleware.
      *
+     * @param  {any}  nsp
      * @return {void}
      */
-    protected registerConnectionCallbacks(): void {
-        let nsp = this.server.io.of(/.*/);
-
+    protected registerSocketMiddleware(nsp: any): void {
         nsp.use((socket, next) => {
             socket.id = this.generateSocketId();
 
@@ -264,7 +266,15 @@ export class EchoServer {
                 next(error);
             });
         });
+    }
 
+    /**
+     * Register callbacks for on('connection') events.
+     *
+     * @param  {any}  nsp
+     * @return {void}
+     */
+    protected registerConnectionCallbacks(nsp): void {
         nsp.on('connection', socket => {
             this.checkIfSocketDidNotReachedLimit(socket).then(socket => {
                 this.onSubscribe(socket);
