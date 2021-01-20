@@ -92,7 +92,7 @@ export class HttpApi {
      * @return {void}
      */
     protected getChannels(req: any, res: any): void {
-        let appId = this.getAppId(req);
+        let appId = req.echoApp.id;
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
         let rooms = this.io.of(`/${appId}`).adapter.rooms;
         let channels = {};
@@ -123,7 +123,7 @@ export class HttpApi {
      * @return {void}
      */
     protected getChannel(req: any, res: any): void {
-        let appId = this.getAppId(req);
+        let appId = req.echoApp.id
         let channelName = req.params.channelName;
         let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
@@ -158,7 +158,7 @@ export class HttpApi {
      * @return {boolean}
      */
     protected getChannelUsers(req: any, res: any): boolean {
-        let appId = this.getAppId(req);
+        let appId = req.echoApp.id
         let channelName = req.params.channelName;
         let channel = this.server.getChannelInstance(channelName);
 
@@ -195,7 +195,7 @@ export class HttpApi {
             return this.badResponse(req, res, 'Wrong format.');
         }
 
-        let appId = this.getAppId(req);
+        let appId = req.echoApp.id
         let socketId = req.body.socket_id || null;
 
         if (socketId) {
@@ -322,6 +322,8 @@ export class HttpApi {
                 if (!app) {
                     reject({ reason: 'App not found when signing token.' });
                 }
+
+                req.echoApp = app;
 
                 let key = req.query.auth_key;
                 let token = new Pusher.Token(key, app.secret);
