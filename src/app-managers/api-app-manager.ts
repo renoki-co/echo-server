@@ -47,8 +47,6 @@ export class ApiAppManager implements AppManagerDriver {
 
         return new Promise((resolve, reject) => {
             this.socketRequester.serverRequest(socket, options).then(body => {
-                let { id, key, secret, maxConnections, allowedOrigins, authHosts, authEndpoint } = body.app;
-
                 if (this.options.development) {
                     Log.info({
                         time: new Date().toISOString(),
@@ -59,15 +57,7 @@ export class ApiAppManager implements AppManagerDriver {
                     });
                 }
 
-                resolve(new App(
-                    id,
-                    key,
-                    secret,
-                    maxConnections,
-                    allowedOrigins,
-                    authHosts,
-                    authEndpoint,
-                ));
+                resolve(new App(body.app));
             }, error => {
                 if (this.options.development) {
                     Log.error(error);
