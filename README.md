@@ -31,7 +31,7 @@ The following are required to function properly:
 
 - Laravel 6.x+
 - Node 10.0+
-- Redis 5+
+- Redis 5+ (optional)
 
 Additional information on broadcasting with Laravel can be found in the official docs: <https://laravel.com/docs/master/broadcasting>
 
@@ -87,7 +87,7 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `APPS_MANAGER_HOST` | `appManager.api.host` | `http://127.0.0.1` | - | The host used to make call, alongside with the endpoint, to retrieve apps. It will be passed in the request as `?token=` |
 | `APPS_MANAGER_TOKEN` | `appManager.api.token` | `echo-app-token` | - | The token used for any API app manager provider to know the request came from the Node.js server. |
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `["*"]` | - | The array of allowed origins that can connect to the WS. |
-| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
+| `DATABASE_DRIVER` | `database.driver` | `redis` | `redis`, `local` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
 | `REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
@@ -138,7 +138,6 @@ BROADCAST_DRIVER=socketio
 
 SOCKETIO_HOST=127.0.0.1
 SOCKETIO_PORT=6001
-
 SOCKETIO_APP_ID=echo-app
 SOCKETIO_APP_KEY=echo-app-key
 SOCKETIO_APP_SECRET=echo-app-secret

@@ -62,6 +62,9 @@ export class EchoServer {
                 password: null,
                 keyPrefix: '',
             },
+            local: {
+                //
+            },
         },
         development: false,
         host: null,

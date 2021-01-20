@@ -1,6 +1,7 @@
 import { DatabaseDriver } from './database-driver';
 import { Log } from './../log';
 import { RedisDatabase } from './redis';
+import { LocalDatabase } from './local';
 
 /**
  * Class that controls the key/value data store.
@@ -21,6 +22,8 @@ export class Database implements DatabaseDriver {
     constructor(protected options: any) {
         if (options.database.driver === 'redis') {
             this.driver = new RedisDatabase(options);
+        } else if (options.database.driver === 'local') {
+            this.driver = new LocalDatabase(options);
         } else {
             Log.error('Database driver not set.');
         }
