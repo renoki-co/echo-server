@@ -53,7 +53,7 @@ $ echo-server start
 
 ## Diferences between Laravel Echo Server and Echo Revamped
 
-The main differences are that Echo Revamped gets rid of the idea of `Clients` and `Configuration File` that is an anti-pattern to the secrets at the repository level. Instead, you might want to rely on Environment Variables to pass data to the options when running a server. Additionally, the clients were not used directly by the frontend workers like Pusher does, so the concept got removed.
+Revamped Echo Server has a more Pusher-like implementation design for the API, starting from apps to security, but not for the WebSockets server, since you still need to use the Socket.IO client for the Echo client.
 
 ## Environment Variables
 
