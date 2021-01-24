@@ -83,7 +83,7 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | - | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
 | `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"-1","authHosts":"[\"http://127.0.0.1\"]","authEndpoint":"/broadcasting/auth"}]'` | - | The list of apps to be used for authentication. |
 | `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
-| `APPS_MANAGER_ENDPOINT` | `appManager.api.endpoint` | `/echo-server/app/:appId` | - | The endpoint used to retrieve an app. This is for `api` driver. |
+| `APPS_MANAGER_ENDPOINT` | `appManager.api.endpoint` | `/echo-server/app` | - | The endpoint used to retrieve an app. This is for `api` driver. |
 | `APPS_MANAGER_HOST` | `appManager.api.host` | `http://127.0.0.1` | - | The host used to make call, alongside with the endpoint, to retrieve apps. It will be passed in the request as `?token=` |
 | `APPS_MANAGER_TOKEN` | `appManager.api.token` | `echo-app-token` | - | The token used for any API app manager provider to know the request came from the Node.js server. |
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `["*"]` | - | The array of allowed origins that can connect to the WS. |
@@ -156,7 +156,7 @@ window.io = require('socket.io-client');
 
 window.Echo = new Echo({
     broadcaster: 'socket.io',
-    host: window.location.hostname + ':6001/echo-app', // "echo-app" should be replaced with the App ID
+    host: window.location.hostname + ':6001/echo-app-key', // "echo-app-key" should be replaced with the App Key
     transports: ['websocket'],
 });
 ```

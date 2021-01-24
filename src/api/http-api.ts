@@ -123,7 +123,7 @@ export class HttpApi {
      * @return {void}
      */
     protected getChannel(req: any, res: any): void {
-        let appId = req.echoApp.id
+        let appId = req.echoApp.id;
         let channelName = req.params.channelName;
         let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
@@ -158,7 +158,7 @@ export class HttpApi {
      * @return {boolean}
      */
     protected getChannelUsers(req: any, res: any): boolean {
-        let appId = req.echoApp.id
+        let appId = req.echoApp.id;
         let channelName = req.params.channelName;
         let channel = this.server.getChannelInstance(channelName);
 
@@ -195,7 +195,7 @@ export class HttpApi {
             return this.badResponse(req, res, 'Wrong format.');
         }
 
-        let appId = req.echoApp.id
+        let appId = req.echoApp.id;
         let socketId = req.body.socket_id || null;
 
         if (socketId) {
@@ -318,7 +318,7 @@ export class HttpApi {
                 },
             };
 
-            this.appManager.find(this.getAppId(req), null, socketData).then(app => {
+            this.appManager.findById(this.getAppId(req), null, socketData).then(app => {
                 if (!app) {
                     reject({ reason: 'App not found when signing token.' });
                 }

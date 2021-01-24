@@ -21,7 +21,7 @@ export class EchoServer {
             driver: 'array',
             api: {
                 host: 'http://127.0.0.1',
-                endpoint: '/echo-server/app/:appId',
+                endpoint: '/echo-server/app',
                 token: 'echo-app-token',
             },
             array: {
@@ -220,12 +220,12 @@ export class EchoServer {
     }
 
     /**
-     * Get the App ID from the socket connection.
+     * Get the App Key from the socket connection.
      *
      * @param  {any}  socket
      * @return {string|undefined}
      */
-    protected getAppId(socket: any): string|undefined {
+    protected getAppKey(socket: any): string|undefined {
         return this.getNspForSocket(socket).replace(/^\//g, ''); // remove the starting slash
     }
 
@@ -384,11 +384,11 @@ export class EchoServer {
                 return resolve(socket);
             }
 
-            let appId = this.getAppId(socket);
+            let appKey = this.getAppKey(socket);
 
-            this.appManager.find(appId, socket, {}).then(app => {
+            this.appManager.findByKey(appKey, socket, {}).then(app => {
                 if (!app) {
-                    reject({ reason: `The app ${appId} does not exist` });
+                    reject({ reason: `The app ${appKey} does not exist` });
                 } else {
                     socket.echoApp = app;
                     resolve(socket);

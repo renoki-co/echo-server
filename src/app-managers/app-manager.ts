@@ -36,7 +36,19 @@ export class AppManager implements AppManagerDriver {
      * @param  {any}  data
      * @return {Promise<App|null>}
      */
-    find(id: string, socket: any, data: any): Promise<App|null> {
-        return this.driver.find(id, socket, data);
+    findById(id: string, socket: any, data: any): Promise<App|null> {
+        return this.driver.findById(id, socket, data);
+    }
+
+    /**
+     * Find an app by given key.
+     *
+     * @param  {string}  key
+     * @param  {any}  socket
+     * @param  {any}  data
+     * @return {Promise<App|null>}
+     */
+    findByKey(key: string, socket: any, data: any): Promise<App|null> {
+        return this.driver.findByKey(key, socket, data);
     }
 }
