@@ -128,6 +128,13 @@ export class EchoServer {
     protected appManager;
 
     /**
+     * Let the server know to reject any new connections.
+     *
+     * @type {boolean}
+     */
+    protected rejectNewConnections = false;
+
+    /**
      * Create a new Echo Server instance.
      */
     constructor() {
@@ -155,6 +162,8 @@ export class EchoServer {
 
             this.server.initialize().then(io => {
                 this.initialize(io).then(() => {
+                    this.rejectNewConnections = false;
+
                     Log.info('\nServer ready!\n');
 
                     if (this.options.development) {
@@ -202,6 +211,8 @@ export class EchoServer {
     stop(): Promise<void> {
         return new Promise((resolve, reject) => {
             console.log('Stopping the server...');
+
+            this.rejectNewConnections = true;
 
             this.server.io.close();
 
@@ -279,6 +290,10 @@ export class EchoServer {
      */
     protected registerConnectionCallbacks(nsp): void {
         nsp.on('connection', socket => {
+            if (this.rejectNewConnections) {
+                return socket.disconnect();
+            }
+
             this.checkIfSocketDidNotReachedLimit(socket).then(socket => {
                 this.onSubscribe(socket);
                 this.onUnsubscribe(socket);
