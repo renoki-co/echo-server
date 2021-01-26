@@ -23,7 +23,6 @@ If you are using your application in your day-to-day job, on presentation demos,
 ## Current Milestones
 
 - Testing
-- App-by-App CORS settings
 
 ## System Requirements
 
@@ -101,13 +100,7 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 
 This server has 100% compatibility with the Pusher clients, meaning that you can use the `pusher` broadcasting driver pointing to the server and expect for it to full work.
 
-However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver:
-
-```bash
-$ DATABASE_DRIVER=local echo-server start
-```
-
-You will need to add a new connection to the broadcasting list:
+However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver. You will need to add a new connection to the broadcasting list:
 
 ```php
 'socketio' => [
@@ -164,6 +157,14 @@ By default, the apps can be defined by passing an array, as explained earlier, u
 However, you might want to store multiple apps in a dynamic & controlled manner. The `api` driver comes in place to help with that. You can specify the host, endpoint and a verification token that can make requests on Echo Server's behalf and retrieve the apps.
 
 In Laravel, you can use [renoki-co/echo-server-core](https://github.com/renoki-co/echo-server-core), and extend the functionality for the `api` driver by storing the apps into database. It comes out-of-the-box with migrations and models, so you can immediately extend the core functionality for Echo Server.
+
+## Local Drivers
+
+By default, Redis is used to store presence channels' data and communicate between other nodes/processes when runing at scale. However, if you have a single monolithic application or a single-node, single-process Node.js process app, you can simply just call the driver as `local`:
+
+```bash
+$ DATABASE_DRIVER=local echo-server start
+```
 
 ## SSL Support
 
