@@ -196,6 +196,8 @@ $ pm2 scale echo-server 5
 └─────┴────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
 ```
 
+**Remember, if you are scaling processes or nodes, make sure to NOT use the local driver since it won't talk effectively between processes/nodes, and you should use a replicating driver like Redis (which is set by default).**
+
 ## Docker Images
 
 The package was built and oriented to a scalable approach, meaning it supports multi-node & multi-process configurations, but also Docker for rapid scaling on certain infrastructure, like Kubernetes.
