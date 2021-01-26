@@ -8,7 +8,7 @@ Revamped Echo Server
 [![License](https://img.shields.io/npm/l/@renoki-co/echo-server)](https://www.npmjs.com/package/@renoki-co/echo-server)
 
 
-Echo Server is a container-ready, multi-scalable Node.js application used to host your own Socket.IO server for Laravel.
+Echo Server is a container-ready, multi-scalable Node.js application used to host your own Socket.IO server for Laravel Broadcasting. It is built on top of Socket.IO and has a Pusher-compatible API server beneath, that makes your implementation a breeze.
 
 This is a fork of the original [Laravel Echo Server package](https://github.com/tlaverdure/laravel-echo-server).
 
@@ -50,10 +50,6 @@ You can run Echo Server directly from the CLI:
 ```bash
 $ echo-server start
 ```
-
-## Diferences between Laravel Echo Server and Echo Revamped
-
-Revamped Echo Server has a more Pusher-like implementation design for the API, starting from apps to security, but not for the WebSockets server, since you still need to use the Socket.IO client for the Echo client.
 
 ## Environment Variables
 
@@ -103,12 +99,12 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 
 ## Pusher Compatibility
 
-This server is 100% compatible with the Pusher API, meaning you can use the `pusher` broadcasting driver pointing to the server and expect for it to full work.
+This server has 100% compatibility with the Pusher clients, meaning that you can use the `pusher` broadcasting driver pointing to the server and expect for it to full work.
 
 However, you still need to declare the apps that can be used either by static listing, or by setting an exposed app driver:
 
 ```bash
-$ APPS_LIST='[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret"}]' echo-server start
+$ DATABASE_DRIVER=local echo-server start
 ```
 
 You will need to add a new connection to the broadcasting list:
@@ -213,6 +209,12 @@ $ docker pull renokico/echo-server:latest
 
 ```bash
 $ docker pull renokico/echo-server:1.0.0
+```
+
+To run in Docker, you can simply:
+
+```bash
+$ docker run -p 6001:6001 renokico/echo-server:1.0.0
 ```
 
 ## 🤝 Contributing
