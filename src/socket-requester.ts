@@ -93,12 +93,17 @@ export class SocketRequester {
      * @return {any}
      */
     protected prepareHeaders(socket: any, options: any): any {
-        options.headers['Cookie'] = options.headers['Cookie'] || socket.request.headers.cookie;
         options.headers['X-Requested-With'] = 'XMLHttpRequest';
         options.headers['X-Forwarded-For'] = socket.request.headers['x-forwarded-for'] || socket.conn.remoteAddress;
 
         if (socket.request.headers['user-agent']) {
             options.headers['User-Agent'] = socket.request.headers['user-agent'];
+        }
+
+        let cookie = options.headers['Cookie'] || socket.request.headers.cookie;
+
+        if (cookie) {
+            options.headers['Cookie'] = cookie;
         }
 
         return options.headers;
