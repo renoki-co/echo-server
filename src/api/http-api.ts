@@ -92,9 +92,9 @@ export class HttpApi {
      * @return {void}
      */
     protected getChannels(req: any, res: any): void {
-        let appId = req.echoApp.id;
+        let appKey = req.echoApp.key;
         let prefix = url.parse(req.url, true).query.filter_by_prefix;
-        let rooms = this.io.of(`/${appId}`).adapter.rooms;
+        let rooms = this.io.of(`/${appKey}`).adapter.rooms;
         let channels = {};
 
         rooms.forEach((sockets, channelName) => {
@@ -123,9 +123,9 @@ export class HttpApi {
      * @return {void}
      */
     protected getChannel(req: any, res: any): void {
-        let appId = req.echoApp.id;
+        let appKey = req.echoApp.key;
         let channelName = req.params.channelName;
-        let room = this.io.of(`/${appId}`).adapter.rooms.get(channelName);
+        let room = this.io.of(`/${appKey}`).adapter.rooms.get(channelName);
         let subscriptionCount = room ? room.size : 0;
         let channel = this.server.getChannelInstance(channelName);
 
@@ -135,7 +135,7 @@ export class HttpApi {
         };
 
         if (channel instanceof PresenceChannel) {
-            channel.getMembers(`/${appId}`, channelName).then(members => {
+            channel.getMembers(`/${appKey}`, channelName).then(members => {
                 members = members || [];
 
                 res.json({
@@ -158,7 +158,7 @@ export class HttpApi {
      * @return {boolean}
      */
     protected getChannelUsers(req: any, res: any): boolean {
-        let appId = req.echoApp.id;
+        let appKey = req.echoApp.key;
         let channelName = req.params.channelName;
         let channel = this.server.getChannelInstance(channelName);
 
@@ -170,7 +170,7 @@ export class HttpApi {
             );
         }
 
-        channel.getMembers(`/${appId}`, channelName).then(members => {
+        channel.getMembers(`/${appKey}`, channelName).then(members => {
             members = members || [];
 
             res.json({
@@ -195,12 +195,12 @@ export class HttpApi {
             return this.badResponse(req, res, 'Wrong format.');
         }
 
-        let appId = req.echoApp.id;
+        let appKey = req.echoApp.key;
         let socketId = req.body.socket_id || null;
 
         if (socketId) {
-            this.findSocketInNamespace(`/${appId}`, socketId).then(socket => {
-                this.sendEventToChannels(`/${appId}`, req, socket);
+            this.findSocketInNamespace(`/${appKey}`, socketId).then(socket => {
+                this.sendEventToChannels(`/${appKey}`, req, socket);
             }, error => {
                 if (this.options.development) {
                     Log.error({
@@ -213,7 +213,7 @@ export class HttpApi {
                 }
             });
         } else {
-            this.sendEventToChannels(`/${appId}`, req);
+            this.sendEventToChannels(`/${appKey}`, req);
         }
 
         res.json({ message: 'ok' });
