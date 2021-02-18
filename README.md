@@ -70,13 +70,11 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
 | `APP_DEFAULT_ALLOWED_ORIGINS` | `appManager.array.apps.0.allowedOrigins` | `["*"]` | - | The default app allowed origins for the array driver. Overrides the `APPS_LIST` if set. |
-| `APP_DEFAULT_AUTH_ENDPOINT` | `appManager.array.apps.0.authEndpoint` | `/broadcasting/auth` | - | The default endpoint to call with the host when authenticating users. Overrides the `APPS_LIST` if set. |
-| `APP_DEFAULT_AUTH_HOSTS` | `appManager.array.apps.0.authHosts` | `["http://127.0.0.1"]` | - | The default host to call when authenticating users. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_ID` | `appManager.array.apps.0.id` | `echo-app` | - | The default app id for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_KEY` | `appManager.array.apps.0.key` | `echo-app-key` | - | The default app key for the array driver. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_MAX_CONNS` | `apiManager.array.apps.0.maxConnections` | `NaN` | - | The default app's limit of concurrent connections. Overrides the `APPS_LIST` if set. |
 | `APP_DEFAULT_SECRET` | `appManager.array.apps.0.secret` | `echo-app-secret` | - | The default app secret for the array driver. Overrides the `APPS_LIST` if set. |
-| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"-1","authHosts":"[\"http://127.0.0.1\"]","authEndpoint":"/broadcasting/auth"}]'` | - | The list of apps to be used for authentication. |
+| `APPS_LIST` | `appManager.array.apps` | `'[{"id":"echo-app","key":"echo-app-key","secret":"echo-app-secret","maxConnections":"-1"]'` | - | The list of apps to be used for authentication. |
 | `APPS_MANAGER_DRIVER` | `appManager.driver` | `array` | `array`, `api` | The driver used to retrieve the app. Use `api` or other centralized method for storing the data. |
 | `APPS_MANAGER_ENDPOINT` | `appManager.api.endpoint` | `/echo-server/app` | - | The endpoint used to retrieve an app. This is for `api` driver. |
 | `APPS_MANAGER_HOST` | `appManager.api.host` | `http://127.0.0.1` | - | The host used to make call, alongside with the endpoint, to retrieve apps. It will be passed in the request as `?token=` |
@@ -138,16 +136,33 @@ ECHO_SERVER_DEFAULT_KEY=echo-app-key
 ECHO_SERVER_DEFAULT_SECRET=echo-app-secret
 ```
 
+## Client Configuration
+
 Last, but not least, the Socket.IO client can be easily namespaced by using the `SOCKETIO_APP_KEY` value, so that it can listen to the `echo-app` namespace. If the namespace is not provided, you will likely see it not working because the defined clients list has only one app, with the ID `echo-app`, so this is the namespace it will broadcast to.
 
+For this, you must install [`@soketi/soketi-js`](https://github.com/soketi/soketi-js). Soketi.js is a hard fork of [laravel/echo](https://github.com/laravel/echo), meaning that you can use it as a normal Echo client, being fully compatible with all the docs [in the Broadcasting docs](https://laravel.com/docs/8.x/broadcasting).
+
+```bash
+$ npm install --save-dev @soketi/soketi-js socket.io-client
+```
+
 ```js
+import Soketi from '@soketi/soketi-js';
+
 window.io = require('socket.io-client');
 
-window.Echo = new Echo({
-    broadcaster: 'socket.io',
+window.Soketi = new Soketi({
     host: window.location.hostname + ':6001/echo-app-key', // "echo-app-key" should be replaced with the App Key
+    authHost: 'http://127.0.0.1:3000',
+    authEndpoint: '/broadcasting/auth',
     transports: ['websocket'],
 });
+
+// for example
+Soketi.channel('twitter')
+    .listen('.tweet.', e => {
+        console.log({ tweet: e.tweet });
+    });
 ```
 
 ## Apps Manager Drivers

@@ -51,58 +51,50 @@ export class PresenceChannel extends PrivateChannel {
      * @return {Promise<any>}
      */
     join(socket: any, data: any): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.authenticate(socket, data).then(res => {
-                let member = res.channel_data;
+        return this.signatureIsValid(socket, data).then(isValid => {
+            if (! isValid) {
+                return;
+            }
 
-                try {
-                    member = JSON.parse(res.channel_data);
-                } catch (e) {
-                    //
+            let member = data.channel_data;
+
+            try {
+                member = JSON.parse(member);
+            } catch (e) {
+                //
+            }
+
+            if (!member) {
+                if (this.options.development) {
+                    Log.error('Unable to join channel. Member data for presence channel missing. Maybe the authentication host and/or url is not right?');
                 }
 
-                if (!member) {
-                    if (this.options.development) {
-                        Log.error('Unable to join channel. Member data for presence channel missing. Maybe the authentication host and/or url is not right?');
+                return;
+            }
+
+            socket.join(data.channel);
+
+            this.isMember(data.channel, member, socket).then(isMember => {
+                this.getMembers(this.getNspForSocket(socket), data.channel).then(members => {
+                    members = members || [];
+                    member.socketId = socket.id;
+
+                    if (!isMember) {
+                        members.push(member);
+
+                        this.db.set(`${this.getNspForSocket(socket)}:${data.channel}:members`, members);
+
+                        members = [
+                            ...members.reduce((map, member) => map.set(member.user_id, member), new Map).values()
+                        ];
+
+                        this.onSubscribed(socket, data.channel, members);
+                        this.onJoin(socket, data.channel, member);
                     }
 
-                    return;
-                }
-
-                socket.join(data.channel);
-
-                this.isMember(data.channel, member, socket).then(isMember => {
-                    this.getMembers(this.getNspForSocket(socket), data.channel).then(members => {
-                        members = members || [];
-                        member.socketId = socket.id;
-
-                        if (!isMember) {
-                            members.push(member);
-
-                            this.db.set(`${this.getNspForSocket(socket)}:${data.channel}:members`, members);
-
-                            members = [
-                                ...members.reduce((map, member) => map.set(member.user_id, member), new Map).values()
-                            ];
-
-                            this.onSubscribed(socket, data.channel, members);
-                            this.onJoin(socket, data.channel, member);
-                        }
-
-                        resolve(res);
-                    }, error => Log.error(error));
-                }, () => Log.error('Error retrieving pressence channel members.'));
-            }, error => {
-                if (this.options.development) {
-                    Log.error(error);
-                }
-
-                this.io.of(this.getNspForSocket(socket))
-                    .to(socket.id)
-                    .emit('subscription_error', data.channel, error.status);
-
-                reject(error);
-            });
+                    return member;
+                }, error => Log.error(error));
+            }, () => Log.error('Error retrieving pressence channel members.'));
         });
     }
 
@@ -211,5 +203,16 @@ export class PresenceChannel extends PrivateChannel {
                 });
             }, error => Log.error(error));
         });
+    }
+
+    /**
+     * Get the data to sign for the token.
+     *
+     * @param  {any}  socket
+     * @param  {any}  data
+     * @return {string}
+     */
+    protected getDataToSignForToken(socket: any, data: any): string {
+        return `${socket.id}:${data.channel}:${data.channel_data}`;
     }
 }

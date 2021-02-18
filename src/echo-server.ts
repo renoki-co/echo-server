@@ -32,8 +32,6 @@ export class EchoServer {
                         secret: 'echo-app-secret',
                         maxConnections: -1,
                         allowedOrigins: ['*'],
-                        authHosts: ['http://127.0.0.1'],
-                        authEndpoint: '/broadcasting/auth',
                     },
                 ],
             },
@@ -402,6 +400,7 @@ export class EchoServer {
             let appKey = this.getAppKey(socket);
 
             this.appManager.findByKey(appKey, socket, {}).then(app => {
+                console.log({ socket });
                 if (!app) {
                     reject({ reason: `The app ${appKey} does not exist` });
                 } else {

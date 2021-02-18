@@ -25,16 +25,6 @@ export class App {
     public allowedOrigins: string[];
 
     /**
-     * @type {string[]}
-     */
-    public authHosts: string[];
-
-    /**
-     * @type {string}
-     */
-    public authEndpoint: string;
-
-    /**
      * Create a new app from object.
      *
      * @param {object} app
@@ -45,15 +35,11 @@ export class App {
         secret: string;
         maxConnections: number;
         allowedOrigins: string[];
-        authHosts: string[];
-        authEndpoint: string;
     }) {
         this.id = app.id;
         this.key = app.key;
         this.secret = app.secret;
         this.maxConnections = app.maxConnections || -1;
         this.allowedOrigins = app.allowedOrigins || ['*'];
-        this.authHosts = app.authHosts || ['http://127.0.1'];
-        this.authEndpoint = app.authEndpoint || '/broadcasting/auth';
     }
 }
