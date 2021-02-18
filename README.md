@@ -140,7 +140,7 @@ ECHO_SERVER_DEFAULT_SECRET=echo-app-secret
 
 Last, but not least, the Socket.IO client can be easily namespaced by using the `SOCKETIO_APP_KEY` value, so that it can listen to the `echo-app` namespace. If the namespace is not provided, you will likely see it not working because the defined clients list has only one app, with the ID `echo-app`, so this is the namespace it will broadcast to.
 
-For this, you must install `@soketi/soketi-js`. Soketi.js is a hard fork of [laravel/echo](https://github.com/laravel/echo), meaning that you can use it as a normal Echo client, being fully compatible with all the docs [in the Broadcasting docs](https://laravel.com/docs/8.x/broadcasting).
+For this, you must install [`@soketi/soketi-js`](https://github.com/soketi/soketi-js). Soketi.js is a hard fork of [laravel/echo](https://github.com/laravel/echo), meaning that you can use it as a normal Echo client, being fully compatible with all the docs [in the Broadcasting docs](https://laravel.com/docs/8.x/broadcasting).
 
 ```bash
 $ npm install --save-dev @soketi/soketi-js socket.io-client
