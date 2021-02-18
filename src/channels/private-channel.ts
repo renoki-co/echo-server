@@ -1,28 +1,8 @@
 import { Channel } from './channel';
-import { Log } from './../log';
-import { SocketRequester } from '../socket-requester';
 
-const url = require('url');
+const Pusher = require('pusher');
 
 export class PrivateChannel extends Channel {
-    /**
-     * The request client to authenticate on.
-     *
-     * @type {SocketRequester}
-     */
-    protected socketRequester;
-
-    /**
-     * Create a new channel instance.
-     *
-     * @param {any} io
-     * @param {any} options
-     */
-    constructor(protected io, protected options) {
-        super(io, options);
-        this.socketRequester = new SocketRequester(options);
-    }
-
     /**
      * Join a given channel.
      *
@@ -31,88 +11,53 @@ export class PrivateChannel extends Channel {
      * @return {Promise<any>}
      */
     join(socket: any, data: any): Promise<any> {
+        return this.signatureIsValid(socket, data).then(isValid => {
+            if (isValid) {
+                return super.join(socket, data);
+            }
+        });
+    }
+
+    /**
+     * Check is an incoming connection can subscribe.
+     *
+     * @param  {any}  socket
+     * @param  {any}  data
+     * @return {Promise<boolean>}
+     */
+    protected signatureIsValid(socket: any, data: any): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            this.authenticate(socket, data).then(res => {
-                super.join(socket, data).then(({ socket, data }) => resolve(res));
-            }, error => {
-                if (this.options.development) {
-                    Log.error(error);
-                }
-
-                this.io.of(this.getNspForSocket(socket))
-                    .to(socket.id)
-                    .emit('subscription_error', data.channel, error.status);
-
-                reject(error);
+            this.getSignedToken(socket, data).then(token => {
+                resolve(token === data.token);
             });
         });
     }
 
     /**
-     * Send authentication request to application server.
+     * Get the signed token from the given socket connection.
      *
      * @param  {any}  socket
      * @param  {any}  data
-     * @return {Promise<any>}
+     * @return {Promise<string>}
      */
-    protected authenticate(socket: any, data: any): Promise<any> {
-        let options = {
-            url: this.getAuthenticatonHost(socket) + (socket.echoApp.authEndpoint || '/broadcasting/auth'),
-            form: { channel_name: data.channel },
-            headers: (data.auth && data.auth.headers) ? data.auth.headers : {},
-            method: 'post',
-            rejectUnauthorized: false,
-        };
+    protected getSignedToken(socket: any, data: any): Promise<string> {
+        return new Promise((resolve, reject) => {
+            let token = new Pusher.Token(socket.echoApp.key, socket.echoApp.secret);
 
-        if (this.options.development) {
-            Log.info({
-                time: new Date().toISOString(),
-                options,
-                action: 'auth',
-                status: 'preparing',
-            });
-        }
-
-        return this.socketRequester.serverRequest(socket, options);
+            resolve(
+                socket.echoApp.key + ':' + token.sign(this.getDataToSignForToken(socket, data))
+            );
+        });
     }
 
     /**
-     * Get the auth host based on the Socket.
+     * Get the data to sign for the token.
      *
      * @param  {any}  socket
+     * @param  {any}  data
      * @return {string}
      */
-    protected getAuthenticatonHost(socket: any): string {
-        let authHosts = socket.echoApp.authHosts || ['http://127.0.0.1'];
-
-        let selectedAuthHost = authHosts[0] || 'http://127.0.0.1';
-
-        if (socket.request.headers.referer) {
-            let referer = url.parse(socket.request.headers.referer);
-
-            for (let authHost of authHosts) {
-                selectedAuthHost = authHost;
-
-                if (this.hasMatchingHost(referer, authHost)) {
-                    selectedAuthHost = `${referer.protocol}//${referer.host}`;
-                    break;
-                }
-            }
-        }
-
-        return selectedAuthHost;
-    }
-
-    /**
-     * Check if there is a matching auth host.
-     *
-     * @param  {any}  referer
-     * @param  {any}  host
-     * @return {boolean}
-     */
-    protected hasMatchingHost(referer: any, host: any): boolean {
-        return (referer.hostname && referer.hostname.substr(referer.hostname.indexOf('.')) === host) ||
-            `${referer.protocol}//${referer.host}` === host ||
-            referer.host === host;
+    protected getDataToSignForToken(socket: any, data: any): string {
+        return `${socket.id}:${data.channel}`;
     }
 }
