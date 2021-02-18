@@ -143,7 +143,7 @@ Last, but not least, the Socket.IO client can be easily namespaced by using the 
 For this, you must install [`@soketi/soketi-js`](https://github.com/soketi/soketi-js). Soketi.js is a hard fork of [laravel/echo](https://github.com/laravel/echo), meaning that you can use it as a normal Echo client, being fully compatible with all the docs [in the Broadcasting docs](https://laravel.com/docs/8.x/broadcasting).
 
 ```bash
-$ npm install --save-dev @soketi/soketi-js socket.io-client
+$ npm install --save-dev @soketi/soketi-js
 ```
 
 ```js
@@ -152,7 +152,9 @@ import Soketi from '@soketi/soketi-js';
 window.io = require('socket.io-client');
 
 window.Soketi = new Soketi({
-    host: window.location.hostname + ':6001/echo-app-key', // "echo-app-key" should be replaced with the App Key
+    host: window.location.hostname,
+    port: 6001,
+    key: 'echo-app-key', // should be replaced with the App Key
     authHost: 'http://127.0.0.1:3000',
     authEndpoint: '/broadcasting/auth',
     transports: ['websocket'],
@@ -160,7 +162,7 @@ window.Soketi = new Soketi({
 
 // for example
 Soketi.channel('twitter')
-    .listen('.tweet.', e => {
+    .listen('.tweet', e => {
         console.log({ tweet: e.tweet });
     });
 ```
