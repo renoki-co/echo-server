@@ -32,7 +32,7 @@ The following are required to function properly:
 - Node 10.0+
 - Redis 5+ (optional)
 
-Additional information on broadcasting with Laravel can be found in the official docs: <https://laravel.com/docs/master/broadcasting>
+Additional information on broadcasting with Laravel can be found in the official [Broadcasting docs](https://laravel.com/docs/master/broadcasting)
 
 ## 🚀 Installation
 
@@ -228,13 +228,13 @@ $ docker pull renokico/echo-server:latest
 ```
 
 ```bash
-$ docker pull renokico/echo-server:1.0.0
+$ docker pull renokico/echo-server:3.0.1
 ```
 
 To run in Docker, you can simply:
 
 ```bash
-$ docker run -p 6001:6001 renokico/echo-server:1.0.0
+$ docker run -p 6001:6001 renokico/echo-server:3.0.1
 ```
 
 ## 🤝 Contributing
