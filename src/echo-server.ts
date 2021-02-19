@@ -3,6 +3,7 @@ import { Channel, PresenceChannel, PrivateChannel } from './channels';
 import { HttpApi } from './api';
 import { Log } from './log';
 import { Server } from './server';
+import { Stats } from './stats';
 
 const { constants } = require('crypto');
 const packageFile = require('../package.json');
@@ -32,6 +33,7 @@ export class EchoServer {
                         secret: 'echo-app-secret',
                         maxConnections: -1,
                         allowedOrigins: ['*'],
+                        enableStats: false,
                     },
                 ],
             },
@@ -69,6 +71,10 @@ export class EchoServer {
         headers: [
             //
         ],
+        stats: {
+            enabled: false,
+            driver: 'local',
+        },
         port: 6001,
         protocol: 'http',
         secureOptions: constants.SSL_OP_NO_TLSv1,
@@ -133,6 +139,13 @@ export class EchoServer {
     protected rejectNewConnections = false;
 
     /**
+     * The stats manager that will be used to store stats.
+     *
+     * @type {Stats}
+     */
+    protected stats;
+
+    /**
      * Create a new Echo Server instance.
      */
     constructor() {
@@ -183,12 +196,20 @@ export class EchoServer {
     initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
             this.appManager = new AppManager(this.options);
+            this.stats = new Stats(this.options);
 
-            this.publicChannel = new Channel(io, this.options);
-            this.privateChannel = new PrivateChannel(io, this.options);
-            this.presenceChannel = new PresenceChannel(io, this.options);
+            this.publicChannel = new Channel(io, this.stats, this.options);
+            this.privateChannel = new PrivateChannel(io, this.stats, this.options);
+            this.presenceChannel = new PresenceChannel(io, this.stats, this.options);
 
-            this.httpApi = new HttpApi(this, io, this.server.express, this.options, this.appManager);
+            this.httpApi = new HttpApi(
+                this,
+                io,
+                this.server.express,
+                this.options,
+                this.appManager,
+                this.stats,
+            );
 
             this.httpApi.initialize();
 
@@ -288,6 +309,13 @@ export class EchoServer {
      */
     protected registerConnectionCallbacks(nsp): void {
         nsp.on('connection', socket => {
+            this.stats.markNewConnection(socket.echoApp);
+            this.stats.refreshMaxConnections(socket.echoApp);
+
+            socket.on('disconnecting', reason => {
+                this.stats.markDisconnection(socket.echoApp);
+            });
+
             if (this.rejectNewConnections) {
                 return socket.disconnect();
             }

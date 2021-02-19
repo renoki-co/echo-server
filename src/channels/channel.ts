@@ -24,9 +24,10 @@ export class Channel {
      * Create a new channel instance.
      *
      * @param {any} io
+     * @param {any} stats
      * @param {any} options
      */
-    constructor(protected io, protected options) {
+    constructor(protected io, protected stats, protected options) {
         //
     }
 
@@ -106,13 +107,15 @@ export class Channel {
             //
         }
 
-        Log.info({
-            time: new Date().toISOString(),
-            socketId: socket.id,
-            action: 'client event',
-            status: 'received',
-            data,
-        });
+        if (this.options.development) {
+            Log.info({
+                time: new Date().toISOString(),
+                socketId: socket.id,
+                action: 'client event',
+                status: 'received',
+                data,
+            });
+        }
 
         if (data.event && data.channel) {
             if (
@@ -126,13 +129,17 @@ export class Channel {
                     .to(data.channel)
                     .emit(data.event, data.channel, data.data);
 
-                Log.info({
-                    time: new Date().toISOString(),
-                    socketId: socket.id,
-                    action: 'client event',
-                    status: 'success',
-                    data,
-                });
+                this.stats.markWsMessage(socket.echoApp);
+
+                if (this.options.development) {
+                    Log.info({
+                        time: new Date().toISOString(),
+                        socketId: socket.id,
+                        action: 'client event',
+                        status: 'success',
+                        data,
+                    });
+                }
             }
         }
     }
