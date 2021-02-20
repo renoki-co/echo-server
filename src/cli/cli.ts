@@ -39,6 +39,7 @@ export class Cli {
         DEBUG: 'development',
         STATS_ENABLED: 'stats.enabled',
         STATS_DRIVER: 'stats.driver',
+        STATS_SNAPSHOTS_INTERVAL: 'stats.snapshots.interval',
         REDIS_HOST: 'database.redis.host',
         REDIS_PORT: 'database.redis.port',
         REDIS_PASSWORD: 'database.redis.password',

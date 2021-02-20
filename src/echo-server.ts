@@ -72,8 +72,11 @@ export class EchoServer {
             //
         ],
         stats: {
-            enabled: false,
+            enabled: true,
             driver: 'local',
+            snapshots: {
+                interval: 60 * 60,
+            },
         },
         port: 6001,
         protocol: 'http',
@@ -217,6 +220,7 @@ export class EchoServer {
 
             this.registerSocketMiddleware(nsp);
             this.registerConnectionCallbacks(nsp);
+            this.registerStatsSnapshotter();
 
             resolve();
         });
@@ -310,7 +314,6 @@ export class EchoServer {
     protected registerConnectionCallbacks(nsp): void {
         nsp.on('connection', socket => {
             this.stats.markNewConnection(socket.echoApp);
-            this.stats.refreshMaxConnections(socket.echoApp);
 
             socket.on('disconnecting', reason => {
                 this.stats.markDisconnection(socket.echoApp);
@@ -339,6 +342,31 @@ export class EchoServer {
                 socket.disconnect();
             });
         });
+    }
+
+    /**
+     * Register the stats snapshotter for all namespaces.
+     *
+     * @return {void}
+     */
+    protected registerStatsSnapshotter(): void {
+        setInterval(() => {
+            let time = Date.now();
+
+            this.server.io._nsps.forEach((nsp, name) => {
+                if (name !== '/') {
+                    if (this.options.development) {
+                        Log.info({
+                            time,
+                            nsp: name,
+                            action: 'taking_snapshot',
+                        });
+                    }
+
+                    this.stats.takeSnapshot(name.replace(/^\//g, ''), time);
+                }
+            });
+        }, this.options.stats.snapshots.interval * 1000);
     }
 
     /**

@@ -84,8 +84,9 @@ ECHO_SERVER_DATABASE_DRIVER=redis
 | `CORS_ALLOWED_ORIGINS` | `cors.origin` | `["*"]` | - | The array of allowed origins that can connect to the WS. |
 | `DATABASE_DRIVER` | `database.driver` | `redis` | `redis`, `local` | The database driver for storing socket data. Use `redis` or other centralized method for storing data. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
-| `STATS_ENABLED` | `stats.enabled` | `false` | `true`, `false` | Wether to enable the stats store. |
-| `STATS_DRIVER` | `stats.driver` | `local` | `local` | The stats driver used to store the stats to. |
+| `STATS_ENABLED` | `stats.enabled` | `true` | `true`, `false` | Wether to enable the stats store. |
+| `STATS_DRIVER` | `stats.driver` | `local` | `local`, `redis` | The stats driver used to store the stats to. |
+| `STATS_SNAPSHOTS_INTERVAL` | `stats.snapshots.interval` | `60 * 60` | - | The amount of time to wait between taking stats snapshots, in seconds. |
 | `REDIS_HOST` | `database.redis.host` | `127.0.0.1` | - | The Redis host used for `redis` driver. |
 | `REDIS_PORT` | `database.redis.port` | `6379` | - | The Redis port used for `redis` driver. |
 | `REDIS_PASSWORD` | `database.redis.password` | `null` | - | The Redis password used for `redis` driver. |

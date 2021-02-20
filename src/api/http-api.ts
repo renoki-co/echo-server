@@ -235,8 +235,11 @@ export class HttpApi {
      * @return {boolean}
      */
     protected getStats(req, res): boolean {
-        this.stats.getStats(req.echoApp).then(stats => {
-            res.json(stats);
+        let start = req.query.start || (Date.now() - 7 * 24 * 60 * 60 * 1000).toFixed(0); // 7 days
+        let end = req.query.end || (Date.now()/1000).toFixed(0);
+
+        this.stats.getSnapshots(req.echoApp, start, end).then(snapshots => {
+            res.json({ stats: snapshots });
         });
 
         return true;

@@ -66,23 +66,38 @@ export class Stats implements StatsDriver {
     }
 
     /**
-     * Refreshes the max number of connections for the app.
-     * Returns a number within a promise.
+     * Get the compiled stats for a given app.
      *
-     * @param  {App}  app
-     * @return {Promise<number>}
+     * @param  {App|string}  app
+     * @return {Promise<any>}
      */
-    refreshMaxConnections(app: App): Promise<number> {
-        return this.driver.refreshMaxConnections(app);
+    getStats(app: App|string): Promise<any> {
+        return this.driver.getStats(app);
     }
 
     /**
-     * Get the compiled stats for a given app.
+     * Take a snapshot of the current stats
+     * for a given time.
      *
-     * @param  {App}  app
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {void}
+     */
+    takeSnapshot(app: App|string, time?: number): void {
+        return this.driver.takeSnapshot(app, time);
+    }
+
+    /**
+     * Get the list of stats snapshots
+     * for a given interval. Defaults to
+     * the last 7 days.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  start
+     * @param  {number|null}  end
      * @return {Promise<any>}
      */
-    getStats(app: App): Promise<any> {
-        return this.driver.getStats(app);
+    getSnapshots(app: App|string, start?: number, end?: number): Promise<any> {
+        return this.driver.getSnapshots(app, start, end);
     }
 }

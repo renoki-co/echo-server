@@ -13,6 +13,15 @@ export class LocalStats implements StatsDriver {
     };
 
     /**
+     * The stored snapshots, keyed by time.
+     *
+     * @type {any}
+     */
+    protected snapshots: any = {
+        //
+    };
+
+    /**
      * Initialize the local stats driver.
      *
      * @param {any} options
@@ -29,7 +38,18 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markNewConnection(app: App): Promise<number> {
-        return new Promise(resolve => resolve(this.increment(app, 'connections')));
+        return new Promise(resolve => {
+            this.increment(app, 'connections').then(connections => {
+                let peakConnections = Math.max(
+                    this.stats[app.key]['peak_connections'] || 0,
+                    connections,
+                );
+
+                this.set(app, 'peak_connections', peakConnections).then(() => {
+                    resolve(connections);
+                });
+            })
+        });
     }
 
     /**
@@ -66,31 +86,66 @@ export class LocalStats implements StatsDriver {
     }
 
     /**
-     * Refreshes the max number of connections for the app.
-     * Returns a number within a promise.
+     * Get the compiled stats for a given app.
      *
-     * @param  {App}  app
-     * @return {Promise<number>}
+     * @param  {App|string}  app
+     * @return {Promise<any>}
      */
-    refreshMaxConnections(app: App): Promise<number> {
-        return this.set(app, 'max_connections', app.maxConnections);
+    getStats(app: App|string): Promise<any> {
+        let appKey = app instanceof App ? app.key : app;
+
+        return new Promise(resolve => {
+            resolve({
+                connections: this.stats[appKey] ? (this.stats[appKey]['connections'] || 0) : 0,
+                peak_connections: this.stats[appKey] ? (this.stats[appKey]['peak_connections'] || 0) : 0,
+                api_messages: this.stats[appKey] ? (this.stats[appKey]['api_messages'] || 0) : 0,
+                ws_messages: this.stats[appKey] ? (this.stats[appKey]['ws_messages'] || 0) : 0,
+            });
+        });
     }
 
     /**
-     * Get the compiled stats for a given app.
+     * Take a snapshot of the current stats
+     * for a given time.
      *
-     * @param  {App}  app
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {void}
+     */
+    takeSnapshot(app: App|string, time?: number): void {
+        let appKey = app instanceof App ? app.key : app;
+
+        time = time ? time : Date.now();
+
+        if (!this.snapshots[appKey]) {
+            this.snapshots[appKey] = [];
+        }
+
+        this.getStats(app).then(stats => {
+            this.snapshots[appKey].push({ time: (time/1000).toFixed(0), stats });
+            this.resetMessagesStats(app);
+        });
+    }
+
+    /**
+     * Get the list of stats snapshots
+     * for a given interval. Defaults to
+     * the last 7 days.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  start
+     * @param  {number|null}  end
      * @return {Promise<any>}
      */
-    getStats(app: App): Promise<any> {
-        return new Promise(resolve => {
-            resolve({
-                connections: this.stats[app.key] ? (this.stats[app.key]['connections'] || 0) : 0,
-                api_messages: this.stats[app.key] ? (this.stats[app.key]['api_messages'] || 0) : 0,
-                ws_messages: this.stats[app.key] ? (this.stats[app.key]['ws_messages'] || 0) : 0,
-                max_connections: this.stats[app.key] ? (this.stats[app.key]['max_connections'] || 0) : 0,
-            });
-        });
+    getSnapshots(app: App|string, start?: number, end?: number): Promise<any> {
+        let appKey = app instanceof App ? app.key : app;
+
+        start = start ? start : Date.now() - (7 * 24 * 60 * 60 * 1000); // 7d
+        end = end ? end : Date.now();
+
+        return new Promise(resolve => resolve(
+            (this.snapshots[appKey] || []).filter(point => start <= point.time && point.time <= end)
+        ));
     }
 
     /**
@@ -157,6 +212,21 @@ export class LocalStats implements StatsDriver {
 
             resolve(value);
         });
+    }
+
+    /**
+     * Reset the messages counters after each snapshot.
+     *
+     * @param  {App|string}  app
+     * @return {void}
+     */
+    protected resetMessagesStats(app: App|string): void {
+        let appKey = app instanceof App ? app.key : app;
+
+        this.stats[appKey]['api_messages'] = 0;
+        this.stats[appKey]['ws_messages'] = 0;
+
+        this.stats[appKey]['peak_connections'] = this.stats[appKey]['connections'] || 0;
     }
 
     /**
