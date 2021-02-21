@@ -2,6 +2,8 @@ import { App } from './../app';
 import { StatsDriver } from './stats-driver';
 import * as dot from 'dot-wild';
 
+const dayjs = require('dayjs');
+
 export class LocalStats implements StatsDriver {
     /**
      * The stored stats.
@@ -115,16 +117,13 @@ export class LocalStats implements StatsDriver {
     takeSnapshot(app: App|string, time?: number): Promise<any> {
         let appKey = app instanceof App ? app.key : app;
 
-        time = time ? time : Date.now();
-
         if (!this.snapshots[appKey]) {
             this.snapshots[appKey] = [];
         }
 
         return this.getStats(app).then(stats => {
             let record = {
-                time: (time/1000).toFixed(0),
-                stats,
+                time, stats,
             };
 
             this.snapshots[appKey].push(record);
@@ -147,8 +146,8 @@ export class LocalStats implements StatsDriver {
     getSnapshots(app: App|string, start?: number, end?: number): Promise<any> {
         let appKey = app instanceof App ? app.key : app;
 
-        start = start ? start : Date.now() - (7 * 24 * 60 * 60 * 1000); // 7d
-        end = end ? end : Date.now();
+        start = start ? start : dayjs().subtract(7, 'day').unix();
+        end = end ? end : dayjs().unix();
 
         return new Promise(resolve => resolve(
             (this.snapshots[appKey] || []).filter(point => start <= point.time && point.time <= end)

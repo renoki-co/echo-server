@@ -11,21 +11,12 @@ export class RedisDatabase implements DatabaseDriver {
     protected redis: any;
 
     /**
-     *
-     * KeyPrefix for used in the redis Connection
-     *
-     * @type {string}
-     */
-    protected keyPrefix: string;
-
-    /**
      * Create a new cache instance.
      *
      * @param {any} options
      */
     constructor(protected options) {
         this.redis = new Redis(options.database.redis);
-        this.keyPrefix = options.database.redis.keyPrefix || '';
     }
 
     /**

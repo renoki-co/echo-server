@@ -1,6 +1,7 @@
 import { Log } from './../log';
 import { PresenceChannel } from './../channels/presence-channel';
 
+const dayjs = require('dayjs');
 const pusherUtil = require('pusher/lib/util');
 const Pusher = require('pusher');
 const url = require('url');
@@ -235,8 +236,8 @@ export class HttpApi {
      * @return {boolean}
      */
     protected getStats(req, res): boolean {
-        let start = req.query.start || (Date.now() - 7 * 24 * 60 * 60 * 1000).toFixed(0); // 7 days
-        let end = req.query.end || (Date.now()/1000).toFixed(0);
+        let start = req.query.start || dayjs().subtract(7, 'day').unix();
+        let end = req.query.end || dayjs().unix();
 
         this.stats.getSnapshots(req.echoApp, start, end).then(snapshots => {
             res.json({ stats: snapshots });

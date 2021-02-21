@@ -133,7 +133,7 @@ Statistics are globally enabled by default, but they are disabled on the default
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
 | `STATS_ENABLED` | `stats.enabled` | `true` | `true`, `false` | Wether to enable the stats store. |
-| `STATS_DRIVER` | `stats.driver` | `local` | `local`, `local-disk` | The stats driver used to store the stats to. |
+| `STATS_DRIVER` | `stats.driver` | `local` | `local`, `local-disk`, `redis` | The stats driver used to store the stats to. |
 | `STATS_SNAPSHOTS_INTERVAL` | `stats.snapshots.interval` | `60 * 60` | - | The amount of time to wait between taking stats snapshots, in seconds. |
 | `STATS_LOCAL_DISK_ROOT` | `stats.local-disk.root` | `${process.cwd()}/stats/` | - | The root for the local disk stats storage. |
 
@@ -141,7 +141,10 @@ For non-distributed systems:
 
 - `local` - Stats are stored in-memory. Snapshots are stored in-memory.
 - `local-disk` - Stats are stored in-memory, but snapshots are saved on disk, at a given root location.
-For distributed systems: Coming soon...
+
+For distributed systems:
+
+- `redis` - Stats are stored in Redis. Snapshots are stored in Redis.
 
 ### Redis
 

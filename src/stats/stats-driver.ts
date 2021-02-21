@@ -57,8 +57,8 @@ export interface StatsDriver {
 
     /**
      * Get the list of stats snapshots
-     * for a given interval. Defaults to
-     * the last 7 days.
+     * for a given interval.
+     * Defaults to the last 7 days.
      *
      * @param  {App|string}  app
      * @param  {number|null}  start

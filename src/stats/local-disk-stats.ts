@@ -2,6 +2,8 @@ import { App } from './../app';
 import { LocalStats } from './local-stats';
 import { StorageManager, Storage } from '@slynova/flydrive';
 
+const dayjs = require('dayjs');
+
 export class LocalDiskStats extends LocalStats {
     /**
      * The Storage instance.
@@ -63,8 +65,8 @@ export class LocalDiskStats extends LocalStats {
 
     /**
      * Get the list of stats snapshots
-     * for a given interval. Defaults to
-     * the last 7 days.
+     * for a given interval.
+     * Defaults to the last 7 days.
      *
      * @param  {App|string}  app
      * @param  {number|null}  start
@@ -75,8 +77,8 @@ export class LocalDiskStats extends LocalStats {
         let appKey = app instanceof App ? app.key : app;
         let file = `${appKey}.json`;
 
-        start = start ? start : Date.now() - (7 * 24 * 60 * 60 * 1000); // 7d
-        end = end ? end : Date.now();
+        start = start ? start : dayjs().subtract(7, 'day').unix();
+        end = end ? end : dayjs().unix();
 
         return this.disk.exists(file).then(existsResponse => {
             if (existsResponse.exists) {

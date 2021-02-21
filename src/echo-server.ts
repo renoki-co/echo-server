@@ -6,6 +6,7 @@ import { Server } from './server';
 import { Stats } from './stats';
 
 const { constants } = require('crypto');
+const dayjs = require('dayjs');
 const packageFile = require('../package.json');
 
 /**
@@ -354,7 +355,7 @@ export class EchoServer {
      */
     protected registerStatsSnapshotter(): void {
         setInterval(() => {
-            let time = Date.now();
+            let time = dayjs().unix();
 
             this.server.io._nsps.forEach((nsp, name) => {
                 if (name !== '/') {
