@@ -5,6 +5,7 @@ LABEL maintainer="Renoki Co. <alex@renoki.org>"
 COPY . /app
 
 RUN cd /app && \
+    mkdir stats && \
     npm install && \
     npm run lint && \
     npm run build && \

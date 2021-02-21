@@ -1,5 +1,6 @@
 import { App } from './../app';
 import { LocalStats } from './local-stats';
+import { LocalDiskStats } from './local-disk-stats';
 import { StatsDriver } from './stats-driver';
 
 export class Stats implements StatsDriver {
@@ -18,6 +19,8 @@ export class Stats implements StatsDriver {
     constructor(options: any) {
         if (options.stats.driver === 'local') {
             this.driver = new LocalStats(options);
+        } else if (options.stats.driver === 'local-disk') {
+            this.driver = new LocalDiskStats(options);
         }
     }
 
@@ -81,9 +84,9 @@ export class Stats implements StatsDriver {
      *
      * @param  {App|string}  app
      * @param  {number|null}  time
-     * @return {void}
+     * @return {Promise<any>}
      */
-    takeSnapshot(app: App|string, time?: number): void {
+    takeSnapshot(app: App|string, time?: number): Promise<any> {
         return this.driver.takeSnapshot(app, time);
     }
 

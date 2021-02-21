@@ -51,9 +51,9 @@ export interface StatsDriver {
      *
      * @param  {App|string}  app
      * @param  {number|null}  time
-     * @return {void}
+     * @return {Promise<any>}
      */
-    takeSnapshot(app: App|string, time?: number): void;
+    takeSnapshot(app: App|string, time?: number): Promise<any>;
 
     /**
      * Get the list of stats snapshots

@@ -74,6 +74,9 @@ export class EchoServer {
         stats: {
             enabled: true,
             driver: 'local',
+            'local-disk': {
+                root: `${process.cwd()}/stats`,
+            },
             snapshots: {
                 interval: 60 * 60,
             },

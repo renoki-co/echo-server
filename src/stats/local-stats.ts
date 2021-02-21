@@ -110,9 +110,9 @@ export class LocalStats implements StatsDriver {
      *
      * @param  {App|string}  app
      * @param  {number|null}  time
-     * @return {void}
+     * @return {Promise<any>}
      */
-    takeSnapshot(app: App|string, time?: number): void {
+    takeSnapshot(app: App|string, time?: number): Promise<any> {
         let appKey = app instanceof App ? app.key : app;
 
         time = time ? time : Date.now();
@@ -121,9 +121,16 @@ export class LocalStats implements StatsDriver {
             this.snapshots[appKey] = [];
         }
 
-        this.getStats(app).then(stats => {
-            this.snapshots[appKey].push({ time: (time/1000).toFixed(0), stats });
+        return this.getStats(app).then(stats => {
+            let record = {
+                time: (time/1000).toFixed(0),
+                stats,
+            };
+
+            this.snapshots[appKey].push(record);
             this.resetMessagesStats(app);
+
+            return record;
         });
     }
 
