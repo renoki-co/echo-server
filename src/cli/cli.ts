@@ -40,6 +40,7 @@ export class Cli {
         STATS_ENABLED: 'stats.enabled',
         STATS_DRIVER: 'stats.driver',
         STATS_SNAPSHOTS_INTERVAL: 'stats.snapshots.interval',
+        STATS_RETENTION_PERIOD: 'stats.retention.period',
         REDIS_HOST: 'database.redis.host',
         REDIS_PORT: 'database.redis.port',
         REDIS_PASSWORD: 'database.redis.password',

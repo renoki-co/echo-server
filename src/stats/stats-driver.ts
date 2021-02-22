@@ -66,4 +66,14 @@ export interface StatsDriver {
      * @return {Promise<any>}
      */
     getSnapshots(app: App|string, start?: number, end?: number): Promise<any>;
+
+    /**
+     * Delete points that are outside of the desired range
+     * of keeping the history of.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {Promise<boolean>}
+     */
+    deleteStalePoints(app: App|string, time?: number): Promise<boolean>;
 }

@@ -37,6 +37,10 @@ export class RedisStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markNewConnection(app: App): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.ensureSetListExists(app).then(() => {
             return this.redis.hincrby(this.getKey(app, 'stats'), 'connections', 1).then(currentConnections => {
                 return this.recalculatePeakConnections(app, currentConnections).then(peakConnections => currentConnections);
@@ -52,6 +56,10 @@ export class RedisStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markDisconnection(app: App): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.ensureSetListExists(app).then(() => {
             return this.redis.hincrby(this.getKey(app, 'stats'), 'connections', -1).then(currentConnections => {
                 return this.recalculatePeakConnections(app, currentConnections).then(peakConnections => currentConnections);
@@ -67,6 +75,10 @@ export class RedisStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markApiMessage(app: App): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.ensureSetListExists(app).then(() => this.redis.hincrby(this.getKey(app, 'stats'), 'api_messages', 1));
     }
 
@@ -78,7 +90,11 @@ export class RedisStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markWsMessage(app: App): Promise<number> {
-        return this.ensureSetListExists(app).then(() => this.redis.hincrby(this.getKey(app, 'ßtats'), 'ws_messages', 1));
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
+        return this.ensureSetListExists(app).then(() => this.redis.hincrby(this.getKey(app, 'stats'), 'ws_messages', 1));
     }
 
     /**
@@ -146,6 +162,22 @@ export class RedisStats implements StatsDriver {
     }
 
     /**
+     * Delete points that are outside of the desired range
+     * of keeping the history of.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {Promise<boolean>}
+     */
+    deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
+        return this.redis.zremrangebyscore(
+            this.getKey(app, 'snapshots'),
+            0,
+            time - this.options.stats.retention.period - 1
+        ).then(() => true);
+    }
+
+    /**
      * Create a setlist with the given name.
      *
      * @param  {App|string}  app
@@ -181,11 +213,13 @@ export class RedisStats implements StatsDriver {
      */
     protected recalculatePeakConnections(app: App|string, currentConnections: number) {
         return this.redis.hget(this.getKey(app, 'stats'), 'peak_connections').then(peakConnections => {
-            peakConnections = peakConnections ?
-                Math.max(peakConnections, currentConnections)
+            peakConnections = peakConnections
+                ? Math.max(peakConnections, currentConnections)
                 : currentConnections;
 
-            return this.redis.hset(this.getKey(app, 'stats'), 'peak_connections', peakConnections).then(() => peakConnections);
+            return this.redis.hset(this.getKey(app, 'stats'), 'peak_connections', peakConnections).then(() => {
+                return peakConnections;
+            });
         });
     }
 
@@ -220,5 +254,15 @@ export class RedisStats implements StatsDriver {
             this.ensureSetListExists(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'ws_messages', 0)),
             this.ensureSetListExists(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'peak_connections', connections)),
         ]);
+    }
+
+    /**
+     * Check if the given app can register stats.
+     *
+     * @param  {App}  app
+     * @return {boolean}
+     */
+    protected canRegisterStats(app: App): boolean {
+        return this.options.stats.enabled && !!app.enableStats;
     }
 }

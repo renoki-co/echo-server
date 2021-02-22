@@ -155,6 +155,24 @@ export class LocalStats implements StatsDriver {
     }
 
     /**
+     * Delete points that are outside of the desired range
+     * of keeping the history of.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {Promise<boolean>}
+     */
+    deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
+        let appKey = app instanceof App ? app.key : app;
+
+        return this.getSnapshots(app, 0, Infinity).then(snapshots => {
+            return this.snapshots[appKey] = snapshots.filter(point => {
+                return point.time >= (time - this.options.stats.retention.period);
+            });
+        }).then(() => true);
+    }
+
+    /**
      * Increment a given stat.
      *
      * @param  {App}  app

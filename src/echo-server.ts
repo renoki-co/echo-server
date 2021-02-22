@@ -81,6 +81,9 @@ export class EchoServer {
             snapshots: {
                 interval: 60 * 60,
             },
+            retention: {
+                period: 7 * 24 * 60 * 60, // 7 days
+            },
         },
         port: 6001,
         protocol: 'http',
@@ -241,9 +244,7 @@ export class EchoServer {
 
             this.rejectNewConnections = true;
 
-            this.server.io.close();
-
-            resolve();
+            this.server.io.close(() => resolve());
         });
     }
 
@@ -319,7 +320,7 @@ export class EchoServer {
         nsp.on('connection', socket => {
             this.stats.markNewConnection(socket.echoApp);
 
-            socket.on('disconnecting', reason => {
+            socket.on('disconnect', reason => {
                 this.stats.markDisconnection(socket.echoApp);
             });
 
@@ -354,23 +355,27 @@ export class EchoServer {
      * @return {void}
      */
     protected registerStatsSnapshotter(): void {
-        setInterval(() => {
-            let time = dayjs().unix();
+        if (this.options.stats.enabled) {
+            setInterval(() => {
+                let time = dayjs().unix();
 
-            this.server.io._nsps.forEach((nsp, name) => {
-                if (name !== '/') {
-                    if (this.options.development) {
-                        Log.info({
-                            time,
-                            nsp: name,
-                            action: 'taking_snapshot',
+                this.server.io._nsps.forEach((nsp, name) => {
+                    if (name !== '/') {
+                        if (this.options.development) {
+                            Log.info({
+                                time,
+                                nsp: name,
+                                action: 'taking_snapshot',
+                            });
+                        }
+
+                        this.stats.takeSnapshot(name.replace(/^\//g, ''), time).then(() => {
+                            this.stats.deleteStalePoints(name.replace(/^\//g, ''), time);
                         });
                     }
-
-                    this.stats.takeSnapshot(name.replace(/^\//g, ''), time);
-                }
-            });
-        }, this.options.stats.snapshots.interval * 1000);
+                });
+            }, this.options.stats.snapshots.interval * 1000);
+        }
     }
 
     /**

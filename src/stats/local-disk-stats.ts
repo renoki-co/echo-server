@@ -88,8 +88,29 @@ export class LocalDiskStats extends LocalStats {
                     });
                 });
             } else {
-                return [];
+                return this.disk.put(file, JSON.stringify([])).then(() => []);
             }
         });
+    }
+
+    /**
+     * Delete points that are outside of the desired range
+     * of keeping the history of.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {Promise<boolean>}
+     */
+    deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
+        let appKey = app instanceof App ? app.key : app;
+        let file = `${appKey}.json`;
+
+        return this.getSnapshots(app, 0, Infinity).then(snapshots => {
+            let filteredSnapshots = snapshots.filter(point => {
+                return point.time >= (time - this.options.stats.retention.period);
+            });
+
+            return this.disk.put(file, JSON.stringify(filteredSnapshots)).then(() => filteredSnapshots);
+        }).then(() => true);
     }
 }

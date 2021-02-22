@@ -106,4 +106,16 @@ export class Stats implements StatsDriver {
     getSnapshots(app: App|string, start?: number, end?: number): Promise<any> {
         return this.driver.getSnapshots(app, start, end);
     }
+
+    /**
+     * Delete points that are outside of the desired range
+     * of keeping the history of.
+     *
+     * @param  {App|string}  app
+     * @param  {number|null}  time
+     * @return {Promise<boolean>}
+     */
+    deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
+        return this.driver.deleteStalePoints(app, time);
+    }
 }
