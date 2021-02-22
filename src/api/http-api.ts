@@ -45,6 +45,7 @@ export class HttpApi {
 
         if (this.options.stats.enabled) {
             this.express.get('/apps/:appId/stats', (req, res) => this.getStats(req, res));
+            this.express.get('/apps/:appId/stats/current', (req, res) => this.getCurrentStats(req, res));
         }
     }
 
@@ -241,6 +242,21 @@ export class HttpApi {
 
         this.stats.getSnapshots(req.echoApp, start, end).then(snapshots => {
             res.json({ stats: snapshots });
+        });
+
+        return true;
+    }
+
+    /**
+     * Retrieve the current statistics for a given app.
+     *
+     * @param  {any}  req
+     * @param  {any}  res
+     * @return {boolean}
+     */
+    protected getCurrentStats(req, res): boolean {
+        this.stats.getStats(req.echoApp).then(stats => {
+            res.json({ stats });
         });
 
         return true;
