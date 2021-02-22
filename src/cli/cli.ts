@@ -34,6 +34,7 @@ export class Cli {
         APPS_MANAGER_ENDPOINT: 'appManager.api.endpoint',
         APPS_MANAGER_HOST: 'appManager.api.host',
         APPS_MANAGER_TOKEN: 'appManager.api.token',
+        CLOSING_GRACE_PERIOD: 'closingGracePeriod',
         CORS_ALLOWED_ORIGINS: 'cors.origin',
         DATABASE_DRIVER: 'database.driver',
         DEBUG: 'development',
@@ -94,8 +95,8 @@ export class Cli {
     start(yargs: any): Promise<any> {
         this.overwriteOptionsFromEnv();
 
-        const handleFailure = () => {
-            echo.stop();
+        const handleFailure = async () => {
+            await echo.stop();
             process.exit();
         }
 

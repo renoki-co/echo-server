@@ -15,9 +15,10 @@ export interface StatsDriver {
      * Returns a number within a promise.
      *
      * @param  {App}  app
+     * @param  {string|null}  reason
      * @return {Promise<number>}
      */
-    markDisconnection(app: App): Promise<number>;
+    markDisconnection(app: App, reason?: string): Promise<number>;
 
     /**
      * Mark in the stats a new API message.

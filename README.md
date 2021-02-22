@@ -123,7 +123,9 @@ Options for application debugging. Should be disabled on production environments
 
 | Environment variable | Object dot-path | Default | Available values | Description |
 | - | - | - | - | - |
+| `CLOSING_GRACE_PERIOD` | `closingGracePeriod` | `60` | - | The amount of time to wait after the server gets closed. This is useful to wait for arbitrary tasks after the sockets disconnect. |
 | `DEBUG` | `development` | `false` | `true`, `false` | Weteher the app should be in development mode. |
+
 
 ### Statsitics
 

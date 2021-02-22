@@ -53,9 +53,10 @@ export class RedisStats implements StatsDriver {
      * Returns a number within a promise.
      *
      * @param  {App}  app
+     * @param  {string|null}  reason
      * @return {Promise<number>}
      */
-    markDisconnection(app: App): Promise<number> {
+    markDisconnection(app: App, reason?: string): Promise<number> {
         if (!this.canRegisterStats(app)) {
             return new Promise(resolve => resolve(0));
         }

@@ -43,10 +43,11 @@ export class Stats implements StatsDriver {
      * Returns a number within a promise.
      *
      * @param  {App}  app
+     * @param  {string|null}  reason
      * @return {Promise<number>}
      */
-    markDisconnection(app: App): Promise<number> {
-        return this.driver.markDisconnection(app);
+    markDisconnection(app: App, reason?: string): Promise<number> {
+        return this.driver.markDisconnection(app, reason);
     }
 
     /**
