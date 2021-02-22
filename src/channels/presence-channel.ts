@@ -12,10 +12,11 @@ export class PresenceChannel extends PrivateChannel {
      * Create a new channel instance.
      *
      * @param {any} io
+     * @param {any} stats
      * @param {any} options
      */
-    constructor(protected io, protected options) {
-        super(io, options);
+    constructor(protected io, protected stats, protected options) {
+        super(io, stats, options);
 
         this.db = new Database(options);
     }
@@ -52,7 +53,7 @@ export class PresenceChannel extends PrivateChannel {
      */
     join(socket: any, data: any): Promise<any> {
         return this.signatureIsValid(socket, data).then(isValid => {
-            if (! isValid) {
+            if (!isValid) {
                 return;
             }
 

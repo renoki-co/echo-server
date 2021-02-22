@@ -1,6 +1,7 @@
 import { Log } from './../log';
 import { PresenceChannel } from './../channels/presence-channel';
 
+const dayjs = require('dayjs');
 const pusherUtil = require('pusher/lib/util');
 const Pusher = require('pusher');
 const url = require('url');
@@ -14,13 +15,15 @@ export class HttpApi {
      * @param {any} express
      * @param {object} options
      * @param {any}  appManager
+     * @param {any}  stats
      */
     constructor(
         protected server,
         protected io,
         protected express,
         protected options,
-        protected appManager
+        protected appManager,
+        protected stats,
     ) {
         //
     }
@@ -39,6 +42,11 @@ export class HttpApi {
         this.express.get('/apps/:appId/channels/:channelName', (req, res) => this.getChannel(req, res));
         this.express.get('/apps/:appId/channels/:channelName/users', (req, res) => this.getChannelUsers(req, res));
         this.express.post('/apps/:appId/events', (req, res) => this.broadcastEvent(req, res));
+
+        if (this.options.stats.enabled) {
+            this.express.get('/apps/:appId/stats', (req, res) => this.getStats(req, res));
+            this.express.get('/apps/:appId/stats/current', (req, res) => this.getCurrentStats(req, res));
+        }
     }
 
     /**
@@ -222,6 +230,39 @@ export class HttpApi {
     }
 
     /**
+     * Retrieve the statistics for a given app.
+     *
+     * @param  {any}  req
+     * @param  {any}  res
+     * @return {boolean}
+     */
+    protected getStats(req, res): boolean {
+        let start = req.query.start || dayjs().subtract(7, 'day').unix();
+        let end = req.query.end || dayjs().unix();
+
+        this.stats.getSnapshots(req.echoApp, start, end).then(snapshots => {
+            res.json({ stats: snapshots });
+        });
+
+        return true;
+    }
+
+    /**
+     * Retrieve the current statistics for a given app.
+     *
+     * @param  {any}  req
+     * @param  {any}  res
+     * @return {boolean}
+     */
+    protected getCurrentStats(req, res): boolean {
+        this.stats.getStats(req.echoApp).then(stats => {
+            res.json({ stats });
+        });
+
+        return true;
+    }
+
+    /**
      * Find a Socket by Id in a given namespace.
      *
      * @param  {string}  namespace
@@ -277,6 +318,8 @@ export class HttpApi {
                     .to(channel)
                     .emit(req.body.name, channel, req.body.data);
             }
+
+            this.stats.markApiMessage(req.echoApp);
         });
     }
 

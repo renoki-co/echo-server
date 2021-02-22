@@ -25,6 +25,11 @@ export class App {
     public allowedOrigins: string[];
 
     /**
+     * @type {boolean}
+     */
+    public enableStats: boolean;
+
+    /**
      * Create a new app from object.
      *
      * @param {object} app
@@ -35,11 +40,13 @@ export class App {
         secret: string;
         maxConnections: number;
         allowedOrigins: string[];
+        enableStats: boolean;
     }) {
         this.id = app.id;
         this.key = app.key;
         this.secret = app.secret;
         this.maxConnections = app.maxConnections || -1;
         this.allowedOrigins = app.allowedOrigins || ['*'];
+        this.enableStats = app.enableStats || false;
     }
 }

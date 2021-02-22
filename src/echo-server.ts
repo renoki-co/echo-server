@@ -3,8 +3,10 @@ import { Channel, PresenceChannel, PrivateChannel } from './channels';
 import { HttpApi } from './api';
 import { Log } from './log';
 import { Server } from './server';
+import { Stats } from './stats';
 
 const { constants } = require('crypto');
+const dayjs = require('dayjs');
 const packageFile = require('../package.json');
 
 /**
@@ -32,10 +34,12 @@ export class EchoServer {
                         secret: 'echo-app-secret',
                         maxConnections: -1,
                         allowedOrigins: ['*'],
+                        enableStats: false,
                     },
                 ],
             },
         },
+        closingGracePeriod: 60,
         cors: {
             credentials: true,
             origin: ['*'],
@@ -69,6 +73,19 @@ export class EchoServer {
         headers: [
             //
         ],
+        stats: {
+            enabled: true,
+            driver: 'local',
+            'local-disk': {
+                root: `${process.cwd()}/stats`,
+            },
+            snapshots: {
+                interval: 60 * 60,
+            },
+            retention: {
+                period: 7 * 24 * 60 * 60, // 7 days
+            },
+        },
         port: 6001,
         protocol: 'http',
         secureOptions: constants.SSL_OP_NO_TLSv1,
@@ -133,6 +150,13 @@ export class EchoServer {
     protected rejectNewConnections = false;
 
     /**
+     * The stats manager that will be used to store stats.
+     *
+     * @type {Stats}
+     */
+    protected stats;
+
+    /**
      * Create a new Echo Server instance.
      */
     constructor() {
@@ -183,12 +207,20 @@ export class EchoServer {
     initialize(io: any): Promise<void> {
         return new Promise((resolve, reject) => {
             this.appManager = new AppManager(this.options);
+            this.stats = new Stats(this.options);
 
-            this.publicChannel = new Channel(io, this.options);
-            this.privateChannel = new PrivateChannel(io, this.options);
-            this.presenceChannel = new PresenceChannel(io, this.options);
+            this.publicChannel = new Channel(io, this.stats, this.options);
+            this.privateChannel = new PrivateChannel(io, this.stats, this.options);
+            this.presenceChannel = new PresenceChannel(io, this.stats, this.options);
 
-            this.httpApi = new HttpApi(this, io, this.server.express, this.options, this.appManager);
+            this.httpApi = new HttpApi(
+                this,
+                io,
+                this.server.express,
+                this.options,
+                this.appManager,
+                this.stats,
+            );
 
             this.httpApi.initialize();
 
@@ -196,6 +228,7 @@ export class EchoServer {
 
             this.registerSocketMiddleware(nsp);
             this.registerConnectionCallbacks(nsp);
+            this.registerStatsSnapshotter();
 
             resolve();
         });
@@ -206,15 +239,25 @@ export class EchoServer {
      *
      * @return {Promise<void>}
      */
-    stop(): Promise<void> {
+    async stop(): Promise<void> {
         return new Promise((resolve, reject) => {
             console.log('Stopping the server...');
 
             this.rejectNewConnections = true;
 
-            this.server.io.close();
-
-            resolve();
+            this.server.io.close(async () => {
+                /**
+                 * There is a timeout set to resolve the promise later
+                 * since (in odd ways???) sync actions like disconnecting
+                 * all sockets and decrementing the current connections count in stats
+                 * do not finish for sync clients like Redis.
+                 *
+                 * So in order to do that, the server close should wait for
+                 * a while before closing it, hence naming his timeout as "grace period"
+                 * to resolve all socket.on() actions.
+                 */
+                await setTimeout(() => resolve(), this.options.closingGracePeriod * 1000);
+            });
         });
     }
 
@@ -288,6 +331,8 @@ export class EchoServer {
      */
     protected registerConnectionCallbacks(nsp): void {
         nsp.on('connection', socket => {
+            this.stats.markNewConnection(socket.echoApp);
+
             if (this.rejectNewConnections) {
                 return socket.disconnect();
             }
@@ -311,6 +356,37 @@ export class EchoServer {
                 socket.disconnect();
             });
         });
+    }
+
+    /**
+     * Register the stats snapshotter for all namespaces.
+     *
+     * @return {void}
+     */
+    protected registerStatsSnapshotter(): void {
+        if (this.options.stats.enabled) {
+            setInterval(() => {
+                let time = dayjs().unix();
+
+                this.server.io._nsps.forEach((nsp, name) => {
+                    if (name !== '/') {
+                        if (this.options.development) {
+                            Log.info({
+                                time,
+                                nsp: name,
+                                action: 'taking_snapshot',
+                            });
+                        }
+
+                        let appKey = name.replace(/^\//g, '');
+
+                        this.stats.takeSnapshot(appKey, time).then(() => {
+                            this.stats.deleteStalePoints(appKey, time);
+                        });
+                    }
+                });
+            }, this.options.stats.snapshots.interval * 1000);
+        }
     }
 
     /**
@@ -345,13 +421,15 @@ export class EchoServer {
      */
     protected onDisconnecting(socket: any): void {
         socket.on('disconnecting', reason => {
-            socket.rooms.forEach(room => {
-                // Each socket has a list of channels defined by us and his own channel
-                // that has the same name as their unique socket ID. We don't want it to
-                // be disconnected from that one and instead disconnect it from our defined channels.
-                if (room !== socket.id) {
-                    this.getChannelInstance(room).leave(socket, room, reason);
-                }
+            this.stats.markDisconnection(socket.echoApp, reason).then(() => {
+                socket.rooms.forEach(room => {
+                    // Each socket has a list of channels defined by us and his own channel
+                    // that has the same name as their unique socket ID. We don't want it to
+                    // be disconnected from that one and instead disconnect it from our defined channels.
+                    if (room !== socket.id) {
+                        this.getChannelInstance(room).leave(socket, room, reason);
+                    }
+                });
             });
         });
     }
