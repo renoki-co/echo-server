@@ -94,18 +94,20 @@ export class SocketRequester {
      */
     protected prepareHeaders(socket: any, options: any): any {
         options.headers['X-Requested-With'] = 'XMLHttpRequest';
-        options.headers['X-Forwarded-For'] = socket.request.headers['x-forwarded-for'] || socket.handshake.headers['x-forwarded-for'] || socket.conn.remoteAddress;
 
-        let userAgent = socket.request.headers['user-agent'] || socket.handshake.headers['user-agent'];
+        if (socket) {
+            options.headers['X-Forwarded-For'] = socket.request.headers['x-forwarded-for'] || socket.handshake.headers['x-forwarded-for'] || socket.conn.remoteAddress;
 
-        if (userAgent) {
-            options.headers['User-Agent'] = userAgent;
-        }
+            let userAgent = socket.request.headers['user-agent'] || socket.handshake.headers['user-agent'];
+            let cookie = options.headers['Cookie'] || socket.request.headers.cookie || socket.handshake.headers.cookie;
 
-        let cookie = options.headers['Cookie'] || socket.request.headers.cookie || socket.handshake.headers.cookie;
+            if (userAgent) {
+                options.headers['User-Agent'] = userAgent;
+            }
 
-        if (cookie) {
-            options.headers['Cookie'] = cookie;
+            if (cookie) {
+                options.headers['Cookie'] = cookie;
+            }
         }
 
         return options.headers;
