@@ -137,6 +137,8 @@ export class RedisStats implements StatsDriver {
                 };
 
                 return this.redis.zadd(this.getKey(app, 'snapshots'), time, JSON.stringify(record)).then(() => {
+                    mutex.release();
+
                     return record;
                 });
             }).then(record => {
