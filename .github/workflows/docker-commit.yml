@@ -26,7 +26,7 @@ jobs:
           - 15.10-stretch-slim
           - lts-alpine
 
-    name: Tag Commit (node:${{ matrix.node }})
+    name: Test & Tag Commit (node:${{ matrix.node }})
 
     steps:
       - uses: actions/checkout@v2

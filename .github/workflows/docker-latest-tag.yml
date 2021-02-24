@@ -28,7 +28,7 @@ jobs:
           - 15.10-stretch-slim
           - lts-alpine
 
-    name: Tag Latest (node:${{ matrix.node }})
+    name: Test & Tag Latest (node:${{ matrix.node }})
 
     steps:
       - uses: actions/checkout@v2
