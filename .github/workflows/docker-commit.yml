@@ -16,7 +16,15 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    name: Tag Commit
+    strategy:
+      matrix:
+        node:
+          - 15.10-alpine
+          - 15.10-buster
+          - 15.10-buster-slim
+          - lts-alpine
+
+    name: Tag Commit (node:${{ matrix.node }})
 
     steps:
       - uses: actions/checkout@v2
@@ -33,13 +41,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build
         id: docker
         uses: docker/build-push-action@v2
         with:
-          push: true
-          tags: renokico/echo-server:${{ github.sha }}
+          push: false
+          tags: renokico/echo-server:${{ github.sha }}-${{ matrix.node }}
 
-      - name: Output container name
+      - name: Test
         run: |
-          echo "renokico/echo-server:${{ github.sha }}"
+          docker run -p 6001:6001 renokico/echo-server:${{ github.sha }}-${{ matrix.node }}
+          sleep 5
+          curl --silent -XGET --fail http://127.0.0.1:6001
+
+      - name: Push
+        run: |
+          docker push renokico/echo-server:${{ github.sha }}-${{ matrix.node }}

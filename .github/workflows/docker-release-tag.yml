@@ -11,10 +11,30 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    name: Tag Release
+    strategy:
+      matrix:
+        node:
+          - 15.10-alpine
+          - 15.10-buster
+          - 15.10-buster-slim
+          - 15.10-stretch
+          - 15.10-stretch-slim
+          - lts-alpine
+
+    name: Tag Release (node:${{ matrix.node }})
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Docker meta
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: renokico/echo-server
+          tag-semver: |
+            {{version}}-${{ matrix.node }}
+            {{major}}.{{minor}}-${{ matrix.node }}
+            {{major}}.{{minor}}.{{patch}}-${{ matrix.node }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -32,9 +52,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push (node:${{ matrix.node }})
         id: docker
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: renokico/echo-server:${{ steps.tag.outputs.tag }}
+          context: .
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ matrix.node }}
