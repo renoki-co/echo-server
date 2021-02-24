@@ -119,4 +119,23 @@ export class Stats implements StatsDriver {
     deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
         return this.driver.deleteStalePoints(app, time);
     }
+
+    /**
+     * Register the app to know we have metrics for it.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    registerApp(app: App|string): Promise<boolean>{
+        return this.driver.registerApp(app);
+    }
+
+    /**
+     * Get the list of registered apps into stats.
+     *
+     * @return {Promise<string[]>}
+     */
+    getRegisteredApps(): Promise<string[]>{
+        return this.driver.getRegisteredApps();
+    }
 }

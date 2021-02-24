@@ -368,8 +368,8 @@ export class EchoServer {
             setInterval(() => {
                 let time = dayjs().unix();
 
-                this.server.io._nsps.forEach((nsp, name) => {
-                    if (name !== '/') {
+                this.stats.getRegisteredApps().then(apps => {
+                    apps.forEach(name => {
                         if (this.options.development) {
                             Log.info({
                                 time,
@@ -383,7 +383,7 @@ export class EchoServer {
                         this.stats.takeSnapshot(appKey, time).then(() => {
                             this.stats.deleteStalePoints(appKey, time);
                         });
-                    }
+                    });
                 });
             }, this.options.stats.snapshots.interval * 1000);
         }

@@ -24,6 +24,15 @@ export class LocalStats implements StatsDriver {
     };
 
     /**
+     * The list of apps that registered metrics.
+     *
+     * @type {string[]}
+     */
+    protected registeredApps: string[] = [
+        //
+    ];
+
+    /**
      * Initialize the local stats driver.
      *
      * @param {any} options
@@ -40,17 +49,15 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markNewConnection(app: App): Promise<number> {
-        return new Promise(resolve => {
-            this.increment(app, 'connections').then(connections => {
+        return this.registerApp(app).then(() => {
+            return this.increment(app, 'connections').then(connections => {
                 let peakConnections = Math.max(
                     this.stats[app.key]['peak_connections'] || 0,
                     connections,
                 );
 
-                this.set(app, 'peak_connections', peakConnections).then(() => {
-                    resolve(connections);
-                });
-            })
+                return this.set(app, 'peak_connections', peakConnections).then(() => connections);
+            });
         });
     }
 
@@ -63,7 +70,9 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markDisconnection(app: App, reason?: string): Promise<number> {
-        return new Promise(resolve => resolve(this.decrement(app, 'connections')));
+        return this.registerApp(app).then(() => {
+            return this.decrement(app, 'connections');
+        });
     }
 
     /**
@@ -74,7 +83,9 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markApiMessage(app: App): Promise<number> {
-        return new Promise(resolve => resolve(this.increment(app, 'api_messages')));
+        return this.registerApp(app).then(() => {
+            return this.increment(app, 'api_messages');
+        });
     }
 
     /**
@@ -85,7 +96,9 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markWsMessage(app: App): Promise<number> {
-        return new Promise(resolve => resolve(this.increment(app, 'ws_messages')));
+        return this.registerApp(app).then(() => {
+            return this.increment(app, 'ws_messages');
+        });
     }
 
     /**
@@ -128,9 +141,22 @@ export class LocalStats implements StatsDriver {
             };
 
             this.snapshots[appKey].push(record);
-            this.resetMessagesStats(app);
 
             return record;
+        }).then(record => {
+            return this.hasActivity(app).then(hasActivity => {
+                if (!hasActivity) {
+                    return this.resetAppTraces(app).then(() => record);
+                }
+
+                /**
+                 * Reset the messages stats to 0 only
+                 * if the app still has activity.
+                 */
+                this.resetMessagesStats(app);
+
+                return record;
+            });
         });
     }
 
@@ -171,6 +197,33 @@ export class LocalStats implements StatsDriver {
                 return point.time >= (time - this.options.stats.retention.period);
             });
         }).then(() => true);
+    }
+
+    /**
+     * Register the app to know we have metrics for it.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    registerApp(app: App|string): Promise<boolean> {
+        let appKey = app instanceof App ? app.key : app;
+
+        return new Promise(resolve => {
+            if (this.registeredApps.indexOf(appKey) === -1) {
+                this.registeredApps.push(appKey);
+            }
+
+            resolve(true);
+        });
+    }
+
+    /**
+     * Get the list of registered apps into stats.
+     *
+     * @return {Promise<string[]>}
+     */
+    getRegisteredApps(): Promise<string[]> {
+        return new Promise(resolve => resolve(this.registeredApps));
     }
 
     /**
@@ -252,6 +305,45 @@ export class LocalStats implements StatsDriver {
         this.stats[appKey]['ws_messages'] = 0;
 
         this.stats[appKey]['peak_connections'] = this.stats[appKey]['connections'] || 0;
+    }
+
+    /**
+     * Reset all app traces from the stats system.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    protected resetAppTraces(app: App|string): Promise<boolean> {
+        return new Promise(resolve => {
+            let appKey = app instanceof App ? app.key : app;
+
+            delete this.stats[appKey];
+            delete this.snapshots[appKey];
+
+            this.registeredApps.splice(this.registeredApps.indexOf(appKey), 1);
+
+            resolve(true);
+        });
+    }
+
+    /**
+     * Check if the app still has activity.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    protected hasActivity(app: App|string): Promise<boolean> {
+        return this.getSnapshots(app, 0, Infinity).then(snapshots => {
+            let activeSnapshots = snapshots.filter(point => {
+                /**
+                 * Check if the sum of all stats are > 0.
+                 * If it is, it means that the app still has activity.
+                 */
+                return Object.values(point.stats).reduce((sum: number, num: number) => sum += num, 0) > 0;
+            });
+
+            return activeSnapshots.length > 0;
+        });
     }
 
     /**
