@@ -77,4 +77,19 @@ export interface StatsDriver {
      * @return {Promise<boolean>}
      */
     deleteStalePoints(app: App|string, time?: number): Promise<boolean>;
+
+    /**
+     * Register the app to know we have metrics for it.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    registerApp(app: App|string): Promise<boolean>;
+
+    /**
+     * Get the list of registered apps into stats.
+     *
+     * @return {Promise<string[]>}
+     */
+    getRegisteredApps(): Promise<string[]>;
 }

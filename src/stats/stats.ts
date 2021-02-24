@@ -1,6 +1,5 @@
 import { App } from './../app';
 import { LocalStats } from './local-stats';
-import { LocalDiskStats } from './local-disk-stats';
 import { RedisStats } from './redis-stats';
 import { StatsDriver } from './stats-driver';
 
@@ -20,8 +19,6 @@ export class Stats implements StatsDriver {
     constructor(options: any) {
         if (options.stats.driver === 'local') {
             this.driver = new LocalStats(options);
-        } else if (options.stats.driver === 'local-disk') {
-            this.driver = new LocalDiskStats(options);
         } else if (options.stats.driver === 'redis') {
             this.driver = new RedisStats(options);
         }
@@ -118,5 +115,24 @@ export class Stats implements StatsDriver {
      */
     deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
         return this.driver.deleteStalePoints(app, time);
+    }
+
+    /**
+     * Register the app to know we have metrics for it.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    registerApp(app: App|string): Promise<boolean>{
+        return this.driver.registerApp(app);
+    }
+
+    /**
+     * Get the list of registered apps into stats.
+     *
+     * @return {Promise<string[]>}
+     */
+    getRegisteredApps(): Promise<string[]>{
+        return this.driver.getRegisteredApps();
     }
 }

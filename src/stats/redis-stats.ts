@@ -41,7 +41,7 @@ export class RedisStats implements StatsDriver {
             return new Promise(resolve => resolve(0));
         }
 
-        return this.ensureSetListExists(app).then(() => {
+        return this.registerApp(app).then(() => {
             return this.redis.hincrby(this.getKey(app, 'stats'), 'connections', 1).then(currentConnections => {
                 return this.recalculatePeakConnections(app, currentConnections).then(peakConnections => currentConnections);
             });
@@ -61,7 +61,7 @@ export class RedisStats implements StatsDriver {
             return new Promise(resolve => resolve(0));
         }
 
-        return this.ensureSetListExists(app).then(() => {
+        return this.registerApp(app).then(() => {
             return this.redis.hincrby(this.getKey(app, 'stats'), 'connections', -1).then(currentConnections => {
                 return this.recalculatePeakConnections(app, currentConnections).then(peakConnections => currentConnections);
             });
@@ -80,7 +80,9 @@ export class RedisStats implements StatsDriver {
             return new Promise(resolve => resolve(0));
         }
 
-        return this.ensureSetListExists(app).then(() => this.redis.hincrby(this.getKey(app, 'stats'), 'api_messages', 1));
+        return this.registerApp(app).then(() => {
+            return this.redis.hincrby(this.getKey(app, 'stats'), 'api_messages', 1);
+        });
     }
 
     /**
@@ -95,7 +97,9 @@ export class RedisStats implements StatsDriver {
             return new Promise(resolve => resolve(0));
         }
 
-        return this.ensureSetListExists(app).then(() => this.redis.hincrby(this.getKey(app, 'stats'), 'ws_messages', 1));
+        return this.registerApp(app).then(() => {
+            return this.redis.hincrby(this.getKey(app, 'stats'), 'ws_messages', 1);
+        });
     }
 
     /**
@@ -133,11 +137,21 @@ export class RedisStats implements StatsDriver {
                 };
 
                 return this.redis.zadd(this.getKey(app, 'snapshots'), time, JSON.stringify(record)).then(() => {
-                    return this.resetMessagesStats(app, stats.connections).then(() => {
-                        mutex.release();
+                    return record;
+                });
+            }).then(record => {
+                return this.hasActivity(app).then(hasActivity => {
+                    if (!hasActivity) {
+                        return this.resetAppTraces(app).then(() => record);
+                    }
 
-                        return record;
-                    });
+                    /**
+                     * Reset the messages stats to 0 only
+                     * if the app still has activity.
+                     */
+                    this.resetMessagesStats(app, record.stats.connections);
+
+                    return record;
                 });
             });
         });
@@ -171,24 +185,32 @@ export class RedisStats implements StatsDriver {
      * @return {Promise<boolean>}
      */
     deleteStalePoints(app: App|string, time?: number): Promise<boolean> {
-        return this.redis.zremrangebyscore(
-            this.getKey(app, 'snapshots'),
-            0,
-            time - this.options.stats.retention.period - 1
-        ).then(() => true);
+        let score = time - this.options.stats.retention.period - 1;
+
+        return this.redis.zremrangebyscore(this.getKey(app, 'snapshots'), 0, score).then(() => {
+            return true;
+        });
     }
 
     /**
-     * Create a setlist with the given name.
+     * Register the app to know we have metrics for it.
      *
      * @param  {App|string}  app
-     * @return {Promise<any>}
+     * @return {Promise<boolean>}
      */
-    protected ensureSetListExists(app: App|string): Promise<any>
-    {
+    registerApp(app: App|string): Promise<boolean> {
         let appKey = app instanceof App ? app.key : app;
 
-        return this.redis.sadd(this.setListName, appKey);
+        return this.redis.sadd(this.setListName, appKey).then(() => true);
+    }
+
+    /**
+     * Get the list of registered apps into stats.
+     *
+     * @return {Promise<string[]>}
+     */
+    getRegisteredApps(): Promise<string[]> {
+        return this.redis.smembers(this.setListName);
     }
 
     /**
@@ -225,6 +247,68 @@ export class RedisStats implements StatsDriver {
     }
 
     /**
+     * Reset the messages counters after each snapshot,
+     * maintaining the connections number.
+     *
+     * @param  {App|string}  app
+     * @param  {number}  connections
+     * @return {void}
+     */
+    protected resetMessagesStats(app: App|string, connections: number): Promise<any> {
+        return Promise.all([
+            this.registerApp(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'api_messages', 0)),
+            this.registerApp(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'ws_messages', 0)),
+            this.registerApp(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'peak_connections', connections)),
+        ]);
+    }
+
+    /**
+     * Reset all app traces from the stats system.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    protected resetAppTraces(app: App|string): Promise<boolean> {
+        return new Promise(resolve => {
+            let appKey = app instanceof App ? app.key : app;
+
+            return this.redis.zremrangebyscore(this.getKey(app, 'snapshots'), 0, Infinity).then(() => {
+                return this.redis.srem(this.setListName, appKey).then(() => true);
+            });
+        });
+    }
+
+    /**
+     * Check if the app still has activity.
+     *
+     * @param  {App|string}  app
+     * @return {Promise<boolean>}
+     */
+    protected hasActivity(app: App|string): Promise<boolean> {
+        return this.getSnapshots(app, 0, Infinity).then(snapshots => {
+            let activeSnapshots = snapshots.filter(point => {
+                /**
+                 * Check if the sum of all stats are > 0.
+                 * If it is, it means that the app still has activity.
+                 */
+                return Object.values(point.stats).reduce((sum: number, num: number) => sum += num, 0) > 0;
+            });
+
+            return activeSnapshots.length > 0;
+        });
+    }
+
+    /**
+     * Check if the given app can register stats.
+     *
+     * @param  {App}  app
+     * @return {boolean}
+     */
+    protected canRegisterStats(app: App): boolean {
+        return this.options.stats.enabled && !!app.enableStats;
+    }
+
+    /**
      * Get the mutex for the app.
      *
      * @param  {App|string}  app
@@ -239,31 +323,5 @@ export class RedisStats implements StatsDriver {
                 refreshInterval: 0,
             },
         );
-    }
-
-    /**
-     * Reset the messages counters after each snapshot,
-     * maintaining the connections number.
-     *
-     * @param  {App|string}  app
-     * @param  {number}  connections
-     * @return {void}
-     */
-    protected resetMessagesStats(app: App|string, connections: number): Promise<any> {
-        return Promise.all([
-            this.ensureSetListExists(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'api_messages', 0)),
-            this.ensureSetListExists(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'ws_messages', 0)),
-            this.ensureSetListExists(app).then(() => this.redis.hset(this.getKey(app, 'stats'), 'peak_connections', connections)),
-        ]);
-    }
-
-    /**
-     * Check if the given app can register stats.
-     *
-     * @param  {App}  app
-     * @return {boolean}
-     */
-    protected canRegisterStats(app: App): boolean {
-        return this.options.stats.enabled && !!app.enableStats;
     }
 }
