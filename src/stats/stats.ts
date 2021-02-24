@@ -1,6 +1,5 @@
 import { App } from './../app';
 import { LocalStats } from './local-stats';
-import { LocalDiskStats } from './local-disk-stats';
 import { RedisStats } from './redis-stats';
 import { StatsDriver } from './stats-driver';
 
@@ -20,8 +19,6 @@ export class Stats implements StatsDriver {
     constructor(options: any) {
         if (options.stats.driver === 'local') {
             this.driver = new LocalStats(options);
-        } else if (options.stats.driver === 'local-disk') {
-            this.driver = new LocalDiskStats(options);
         } else if (options.stats.driver === 'redis') {
             this.driver = new RedisStats(options);
         }

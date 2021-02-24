@@ -28,7 +28,6 @@
     "test:watch": "npm test -- --watch"
   },
   "dependencies": {
-    "@slynova/flydrive": "^1.0.3",
     "colors": "^1.4.0",
     "dayjs": "^1.10.4",
     "dot-wild": "^3.0.1",
