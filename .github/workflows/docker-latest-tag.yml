@@ -24,6 +24,8 @@ jobs:
           - 15.10-alpine
           - 15.10-buster
           - 15.10-buster-slim
+          - 15.10-stretch
+          - 15.10-stretch-slim
           - lts-alpine
 
     name: Tag Latest (node:${{ matrix.node }})
