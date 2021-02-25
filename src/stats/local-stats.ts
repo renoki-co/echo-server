@@ -49,6 +49,10 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markNewConnection(app: App): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.registerApp(app).then(() => {
             return this.increment(app, 'connections').then(connections => {
                 let peakConnections = Math.max(
@@ -70,6 +74,10 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markDisconnection(app: App, reason?: string): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.registerApp(app).then(() => {
             return this.decrement(app, 'connections');
         });
@@ -83,6 +91,10 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markApiMessage(app: App): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.registerApp(app).then(() => {
             return this.increment(app, 'api_messages');
         });
@@ -96,6 +108,10 @@ export class LocalStats implements StatsDriver {
      * @return {Promise<number>}
      */
     markWsMessage(app: App): Promise<number> {
+        if (!this.canRegisterStats(app)) {
+            return new Promise(resolve => resolve(0));
+        }
+
         return this.registerApp(app).then(() => {
             return this.increment(app, 'ws_messages');
         });
