@@ -34,7 +34,6 @@ jobs:
           tag-semver: |
             {{version}}-${{ matrix.node }}
             {{major}}.{{minor}}-${{ matrix.node }}
-            {{major}}.{{minor}}.{{patch}}-${{ matrix.node }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
