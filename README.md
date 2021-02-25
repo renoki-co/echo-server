@@ -167,7 +167,7 @@ This server is PM2-ready and [can scale to a lot of processes](docs/PM2.md).
 
 ## Docker Images
 
-Automatically, after each release, a Docker tag is created with an image that holds the app code. [Read on how to use it with Docker](docs/DOCKER.md)
+Automatically, after each release, a Docker tag is created with an image that holds the app code. [Read about versions & usage on DockerHub](https://hub.docker.com/r/renokico/echo-server).
 
 ## 🤝 Contributing
 
