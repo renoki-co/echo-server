@@ -1,5 +1,5 @@
-Echo Server
-===========
+Echo Server - deprecated; move to [soketi/echo-server](https://github.com/soketi/echo-server)
+=============================================================================================
 
 ![CI](https://github.com/renoki-co/echo-server/workflows/CI/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/renoki-co/echo-server/branch/master/graph/badge.svg)](https://codecov.io/gh/renoki-co/echo-server/branch/master)
